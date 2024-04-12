@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"editor.defaultFormatter": "charliermarsh.ruff",
+		"python.envFile": "${workspaceFolder}/.env",
+		"python.defaultInterpreterPath": "${workspaceFolder}/.env/Scripts/python.exe",
+		"python.terminal.activateEnvironment": true,
+		"terminal.integrated.defaultProfile.windows": "PowerShell",
+		"python.analysis.inlayHints.functionReturnTypes": true,
+		"python.analysis.inlayHints.variableTypes": true
+	}
+}

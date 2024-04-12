@@ -1,0 +1,22 @@
+[tool.ruff]
+target-version = "py311"
+src = ["src", "test"]
+line-length = 150
+indent-width = 2
+docstring-code-format = true
+docstring-code-line-length = 200
+exclude = [".env", "Bridge"]
+ignore = []
+select = ["ALL"] # すべてのルールを適用する
+
+[tool.ruff.format]
+exclude = [".env", "Bridge"]
+
+[tool.ruff.lint]
+exclude = [".env", "Bridge"]
+
+[tool.ruff.pydocstyle]
+convention = "google" # docstringの形式を指定
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
