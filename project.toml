@@ -2,11 +2,14 @@
 target-version = "py311"
 src = ["src", "test"]
 line-length = 150
-indent-width = 2
+indent-width = 4
 docstring-code-format = true
 docstring-code-line-length = 200
 exclude = [".env", "Bridge"]
-ignore = []
+ignore = [
+    # E501(line length)はコメント行で無視したいのでnoqaで対応
+    "RUF100", # E501を無視してもエラーにならないだけで整形はされるのをnoqaで止めたいが無意味だと言われるので除外
+]
 select = ["ALL"] # すべてのルールを適用する
 
 [tool.ruff.format]
