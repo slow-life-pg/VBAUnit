@@ -11,8 +11,8 @@ Public Const ResultSheet As String = "MacroReturn"
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' Public Procedures
 
-'' CallByName‚ğg‚í‚È‚¢‚ÆAByRef‚Ì’l‚ª–ß‚Á‚Ä‚±‚È‚¢B
-'' Run‚ÍŠO‚©‚ç‚àŒÄ‚×‚é‚ªABridge‚ğŒo—R‚·‚é•K—v‚ª‚ ‚éB
+'' CallByNameã‚’ä½¿ã‚ãªã„ã¨ã€ByRefã®å€¤ãŒæˆ»ã£ã¦ã“ãªã„ã€‚
+'' Runã¯å¤–ã‹ã‚‰ã‚‚å‘¼ã¹ã‚‹ãŒã€Bridgeã‚’çµŒç”±ã™ã‚‹å¿…è¦ãŒã‚ã‚‹ã€‚
 Public Function CallMacro(ByVal callobj As Variant, ByVal workbookname As String, ByVal macroname As String, ByRef params() As Variant) As Variant
     Dim callparams() As Variant
     
