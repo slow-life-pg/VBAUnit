@@ -1,24 +1,38 @@
-if __name__ == "__main__":
-    import sys
-    import json
-    from pathlib import Path
-    from datetime import datetime
+import sys
+import json
+from pathlib import Path
+from datetime import datetime
+from util.types import Config
 
-    toolDir = Path(__file__).parent
+
+def printstartmessage(currentDir: Path, toolDir: Path) -> None:
     print("****************************************")
-    print(f"VBAUnit kicked on {Path.cwd()}")
+    print(f"VBAUnit kicked on {currentDir}")
     print(f"Tool is in {toolDir}")
     print(f"{datetime.now()}")
     print()
 
-    configPath = toolDir.joinpath("config.json")
 
+def getconfigpath(currentDir: Path, toolDir: Path) -> Path:
+    configPath = currentDir.joinpath("config.json")
+    if not configPath.exists():
+        print("[warn] config get from tool directory")
+        configPath = toolDir.joinpath("config.json")
+        
+    return configPath
+
+
+def getconfig(configPath: Path) -> Config:
     with open(str(configPath), encoding="utf-8") as fc:
-        config = json.load(fc)
+        jsondict = json.load(fc)
 
-    print(f"start with: {config['scenario']}")
+    config = Config()
+    config.parse(jsondict=jsondict)
+    return config
 
-    scenarioPath = Path(config["scenario"])
+
+def getscenariopath(scenario: str) -> Path:
+    scenarioPath = Path(config.scenario)
     if scenarioPath.is_absolute():
         print("absolute path")
     else:
@@ -26,6 +40,27 @@ if __name__ == "__main__":
         scenarioPath = scenarioPath.resolve()
         print(f"resolved: {scenarioPath}")
 
+    return scenarioPath
+
+
+def getbridgepath(toolDir: Path) -> Path:
+    return toolDir.joinpath("Bridge.xlsm")
+
+
+if __name__ == "__main__":
+    currentDir = Path.cwd()
+    toolDir = Path(__file__).parent
+    printstartmessage(currentDir=currentDir, toolDir=toolDir)
+
+    cocnfigPath = getconfigpath(currentDir=currentDir, toolDir=toolDir)
+    if not cocnfigPath.exists():
+        print("config.json not exists")
+        sys.exit()
+
+    config = getconfig(configPath=cocnfigPath)
+    print(f"start with: {config.scenario}")
+
+    scenarioPath = getscenariopath(config.scenario)
     if not scenarioPath.exists():
         print("scenario not exists")
         sys.exit()
@@ -33,6 +68,6 @@ if __name__ == "__main__":
     print()
     print("run test!")
 
-    bridgePath = toolDir.joinpath("Bridge.xlsm")
+    bridgePath = getbridgepath(toolDir=toolDir)
 
     print(f"using: {bridgePath}")
