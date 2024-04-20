@@ -8,10 +8,12 @@
 		"[python]": {
 			"editor.formatOnType": false,
 			"editor.formatOnSave": false,
+			"editor.defaultFormatter": "charliermarsh.ruff",
 		},
-		"editor.formatOnSave": false,
-		"editor.defaultFormatter": "charliermarsh.ruff",
 		"python.envFile": "${workspaceFolder}/.env",
+		"python.analysis.extraPaths": [
+			"${workspaceFolder}/src"
+		],
 		"python.defaultInterpreterPath": "${workspaceFolder}/.env/Scripts/python.exe",
 		"python.terminal.activateEnvironment": true,
 		"terminal.integrated.defaultProfile.windows": "PowerShell",
