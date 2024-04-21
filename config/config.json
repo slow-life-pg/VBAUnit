@@ -1,3 +1,43 @@
 {
-    "scenario": "..\\test\\UnitTestScenario.xlsx"
+    "scenario": "..\\test\\UnitTestScenario.xlsx",
+    "testsuites": [
+        {
+            "name": "FA-normal",
+            "subject": "FunctionA normal",
+            "scope": "full",
+            "tests": [
+                {
+                    "group": "GropuA"
+                },
+                {
+                    "group": "GroupB"
+                }
+            ]
+        },
+        {
+            "name": "FB-abnormal",
+            "subject": "FunctionB abnormal",
+            "scope": "full",
+            "tests": [
+                {
+                    "group": "GroupC",
+                    "filter": "warn|error"
+                },
+                {
+                    "group": "GroupD",
+                    "filter": "warn|error",
+                    "ignore": "case8|case12"
+                }
+            ]
+        },
+        {
+            "name": "failed",
+            "subject": "Get Done",
+            "scope": "lastfailed"
+        },
+        {
+            "name": "full",
+            "scope": "full"
+        }
+    ]
 }

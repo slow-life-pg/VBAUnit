@@ -7,7 +7,7 @@
 	"settings": {
 		"[python]": {
 			"editor.formatOnType": false,
-			"editor.formatOnSave": false,
+			"editor.formatOnSave": true,
 			"editor.defaultFormatter": "charliermarsh.ruff",
 		},
 		"python.envFile": "${workspaceFolder}/.env",

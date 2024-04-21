@@ -6,6 +6,22 @@ from datetime import datetime
 from util.types import Config
 
 
+def analyzeargs(argv: list[str]) -> str:
+    if len(sys.argv) == 1 or len(sys.argv) > 3:
+        print("Usage:")
+        print("python main.py {testsuite name} [{working directory}]")
+        print()
+        sys.exit()
+
+    if len(sys.argv) > 2:
+        # 引数があればカレントディレクトリに設定
+        argPath = Path(sys.argv[2])
+        if argPath.exists():
+            changecurdir(argPath)
+
+    return sys.argv[1]
+
+
 def printstartmessage(currentDir: Path, toolDir: Path) -> None:
     print("****************************************")
     print(f"VBAUnit kicked on {currentDir}")
@@ -14,8 +30,8 @@ def printstartmessage(currentDir: Path, toolDir: Path) -> None:
     print()
 
 
-def changecurdir(newDir: str) -> None:
-    runDir = Path(newDir).resolve()
+def changecurdir(newDir: Path) -> None:
+    runDir = newDir.resolve()
     os.chdir(runDir)
 
 
@@ -32,8 +48,7 @@ def getconfig(configPath: Path) -> Config:
     with open(str(configPath), encoding="utf-8") as fc:
         jsondict = json.load(fc)
 
-    config = Config()
-    config.parse(jsondict=jsondict)
+    config = Config(jsondict=jsondict)
     return config
 
 
@@ -54,9 +69,7 @@ def getbridgepath(toolDir: Path) -> Path:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        # 引数があればカレントディレクトリに設定
-        changecurdir(sys.argv[1])
+    testsuite = analyzeargs(sys.argv)
 
     currentDir = Path.cwd()
     toolDir = Path(__file__).parent
@@ -81,3 +94,5 @@ if __name__ == "__main__":
     bridgePath = getbridgepath(toolDir=toolDir)
 
     print(f"using: {bridgePath}")
+
+    sys.path.append(str(toolDir))

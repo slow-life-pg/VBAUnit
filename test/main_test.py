@@ -45,5 +45,5 @@ def test_getconfigpath_inoutside():
     outsidePath = Path.cwd().joinpath("outside")
     if not outsidePath.exists():
         outsidePath.mkdir()
-    main.changecurdir(str(outsidePath))
+    main.changecurdir(outsidePath)
     getconfigpath_boilerplate(ConfigPlace.OUTSIDE)
