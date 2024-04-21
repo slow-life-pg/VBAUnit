@@ -1,4 +1,5 @@
 import sys
+import os
 import json
 from pathlib import Path
 from datetime import datetime
@@ -13,12 +14,17 @@ def printstartmessage(currentDir: Path, toolDir: Path) -> None:
     print()
 
 
+def changecurdir(newDir: str) -> None:
+    runDir = Path(newDir).resolve()
+    os.chdir(runDir)
+
+
 def getconfigpath(currentDir: Path, toolDir: Path) -> Path:
     configPath = currentDir.joinpath("config.json")
     if not configPath.exists():
         print("[warn] config get from tool directory")
         configPath = toolDir.joinpath("config.json")
-        
+
     return configPath
 
 
@@ -48,6 +54,10 @@ def getbridgepath(toolDir: Path) -> Path:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        # 引数があればカレントディレクトリに設定
+        changecurdir(sys.argv[1])
+
     currentDir = Path.cwd()
     toolDir = Path(__file__).parent
     printstartmessage(currentDir=currentDir, toolDir=toolDir)
