@@ -50,7 +50,7 @@ def getscenariopath(scenario: str) -> Path:
 
 
 def getbridgepath(toolDir: Path) -> Path:
-    return toolDir.joinpath("Bridge.xlsm")
+    return toolDir.joinpath("VBAUnitCOMBridge.xlsm")
 
 
 if __name__ == "__main__":
