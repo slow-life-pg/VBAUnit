@@ -23,3 +23,26 @@ mypyエラーは設定で回避。
 ### printできない
 テストコードの中で``print``を書いても、実行結果に表示されない。
 確かに邪魔と言えば邪魔だが、あって悪いことはないと思う。
+
+### Testと名の付くクラスに警告
+実行時にクラス名に"Test"が付くものがあると警告が出る。
+
+----
+PytestCollectionWarning: cannot collect test class 'TestScope' because it has a __init__ constructor
+----
+
+### テスト関数のローカル値が残る
+``class``の属性はコンストラクタで代入することで作らなければならない。
+なぜか、そうしないとグローバル変数扱いになる。
+
+[source, python]
+....
+# NG
+class A:
+    member: str
+
+# OK
+class B:
+    def __init__(self):
+        self.member = ""
+....

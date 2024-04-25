@@ -15,25 +15,26 @@ class TestScope(Enum):
 
 
 class TestSet:
-    group: str
-    filters: list[str] = []
-    ignores: list[str] = []
+    def __init__(self) -> None:
+        self.group = ""
+        self.filters = list[str]()
+        self.ignores = list[str]()
 
 
 class TestSuite:
-    name: str
-    subject: str
-    scope: TestScope = TestScope.FULL
-    tests: list[TestSet] = []
+    def __init__(self) -> None:
+        self.name = ""
+        self.subject = ""
+        self.scope = TestScope.FULL
+        self.tests = list[TestSet]()
 
 
 class Config:
-    scenario: str
-    testsuites: list[TestSuite] = []
-
-    valid = True
-
     def __init__(self, jsondict: dict) -> None:
+        self.scenario = ""
+        self.testsuites = list[TestSuite]()
+        self.valid = True
+
         if "scenario" not in jsondict or "testsuites" not in jsondict:
             self.valid = False
 
@@ -54,6 +55,11 @@ class Config:
         if "name" not in testsuiteobj:
             raise ValueError("testsuite object must have 'name'", testsuiteobj)
 
+        if "scope" not in testsuiteobj and "tests" not in testsuiteobj:
+            raise ValueError(
+                "testsuite object must have 'scope' or 'tests'", testsuiteobj
+            )
+
         testsuite = TestSuite()
         testsuite.name = testsuiteobj["name"]
 
@@ -69,6 +75,8 @@ class Config:
             for testobj in testsuiteobj["tests"]:
                 test = self.__parsetest(testobj=testobj)
                 testsuite.tests.append(test)
+
+        return testsuite
 
     def __parsetest(self, testobj: dict) -> TestSet:
         if "group" not in testobj:
@@ -88,4 +96,3 @@ class Config:
         rawConditions = condition.split("|")
         for raw in rawConditions:
             conditions.append(raw.strip())
-        return conditions
