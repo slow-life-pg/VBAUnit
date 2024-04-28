@@ -11,9 +11,13 @@ class ConfigPlace(StrEnum):
     OUTSIDE = "outside"
 
 
+def getlocalscenariofilenam() -> str:
+    return "localfile.xlsx"
+
+
 def createconfigfile(place: ConfigPlace) -> Path:
     configPath = __getactualpath(place=place)
-    jsonObj = {"scenario": "localfile.xlsx"}
+    jsonObj = {"scenario": getlocalscenariofilenam()}
     with open(str(configPath), mode="wt", encoding="utf-8") as fp:
         json.dump(obj=jsonObj, fp=fp)
     return configPath

@@ -53,11 +53,11 @@ def getconfig(configPath: Path) -> Config:
 
 
 def getscenariopath(scenario: str) -> Path:
-    scenarioPath = Path(config.scenario)
+    scenarioPath = Path(scenario)
     if scenarioPath.is_absolute():
-        print("absolute path")
+        print("absolute scenario path")
     else:
-        print(f"relative path based on {Path.cwd()}")
+        print(f"relative scenario path based on {Path.cwd()}")
         scenarioPath = scenarioPath.resolve()
         print(f"resolved: {scenarioPath}")
 

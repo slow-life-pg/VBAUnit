@@ -2,6 +2,7 @@ from pathlib import Path
 from pathutil.util import gettooldir
 from configutil.util import (
     ConfigPlace,
+    getlocalscenariofilenam,
     createconfigfile,
     deleteconfigfile,
 )
@@ -22,7 +23,7 @@ import main
 #     sys.path.remove(str(srcDir))
 
 
-def getconfigpath_boilerplate(place: ConfigPlace) -> None:
+def assertconfigpath_boilerplate(place: ConfigPlace) -> None:
     curDir = Path.cwd()
     toolDir = gettooldir()
     filePath = createconfigfile(place=place)
@@ -34,11 +35,11 @@ def getconfigpath_boilerplate(place: ConfigPlace) -> None:
 
 
 def test_getconfigpath_incurrent():
-    getconfigpath_boilerplate(ConfigPlace.LOCAL)
+    assertconfigpath_boilerplate(ConfigPlace.LOCAL)
 
 
 def test_getconfigpath_intool():
-    getconfigpath_boilerplate(ConfigPlace.TOOL)
+    assertconfigpath_boilerplate(ConfigPlace.TOOL)
 
 
 def test_getconfigpath_inoutside():
@@ -46,4 +47,20 @@ def test_getconfigpath_inoutside():
     if not outsidePath.exists():
         outsidePath.mkdir()
     main.changecurdir(outsidePath)
-    getconfigpath_boilerplate(ConfigPlace.OUTSIDE)
+    assertconfigpath_boilerplate(ConfigPlace.OUTSIDE)
+
+
+def test_getconfig_normal():
+    configPath = createconfigfile(ConfigPlace.LOCAL)
+    config = main.getconfig(configPath=configPath)
+    assert config.scenario == getlocalscenariofilenam()
+
+
+def test_getscenariopath_relative():
+    cwdScenarioPath = Path.cwd().joinpath(getlocalscenariofilenam())
+    assert main.getscenariopath(getlocalscenariofilenam()) == cwdScenarioPath
+
+
+def test_getscenariopath_absolute():
+    absScenarioPath = Path("c:\\test").joinpath(getlocalscenariofilenam())
+    assert main.getscenariopath(str(absScenarioPath)) == absScenarioPath
