@@ -1,5 +1,13 @@
+from pathlib import Path
+from datetime import datetime
+from collections import namedtuple
 from enum import Enum
 from pprint import pprint
+from openpyxl.workbook.workbook import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
+
+
+ResultCount = namedtuple("succeeded", "failed")
 
 
 class TestScope(Enum):
@@ -96,3 +104,116 @@ class Config:
         rawConditions = condition.split("|")
         for raw in rawConditions:
             conditions.append(raw.strip())
+
+
+class TestCase:
+    def __init__(self, testId: str, module: str) -> None:
+        self.__id = testId
+        self.__module: str = module
+        self.__modulePath = Path(module).resolve()
+
+    @property
+    def testid(self) -> str:
+        return self.__id
+
+    @property
+    def module(self) -> Path:
+        return self.__modulePath
+
+
+class TestResult:
+    def __init__(self, testId: str, succeeded: bool, runned: datetime) -> None:
+        self.__id = testId
+        self.__succeeded = succeeded
+        self.__runned = runned
+
+    @property
+    def testid(self) -> str:
+        return self.__id
+
+    @property
+    def succeeded(self) -> bool:
+        return self.__succeeded
+
+    @property
+    def runned(self) -> datetime:
+        return self.__runned
+
+
+class TestGroup:
+    def __init__(self, name: str) -> None:
+        self.__groupName = name
+        self.__testcases: list[TestCase] = []
+        self.__results: dict[str, TestResult] = {}
+
+    @property
+    def groupName(self) -> str:
+        return self.__groupName
+
+    def addTestCase(self, testId: str, module: str) -> None:
+        testcase = TestCase(testId=testId, module=module)
+        self.__testcases.append(testcase)
+
+    def setResult(self, testId: str, succeeded: bool, runned: datetime) -> None:
+        succeeded = TestResult(testId=testId, succeeded=succeeded, runned=runned)
+        self.__results[testId] = succeeded
+
+    def getResult(self, testId: str) -> TestResult | None:
+        if testId in self.__results:
+            return self.__results[testId]
+        else:
+            return None
+
+    def __iter__(self) -> list[TestCase]:
+        return self.__testcases
+
+    @property
+    def results(self) -> list[TestResult]:
+        return self.__results.values()
+
+    @property
+    def resultCount(self) -> ResultCount:
+        success = 0
+        fail = 0
+        for result in self.__results.values():
+            if result.succeeded:
+                success += 1
+            else:
+                fail += 1
+        return ResultCount(succeeded=success, failed=fail)
+
+
+class Scenario:
+    def __init__(self, scenarioPath: Path) -> None:
+        self.__valid = True
+        self.__scenario = str(scenarioPath)
+        self.__groups: list[TestGroup] = []
+
+        # ファイル読み込み
+        sbook = None
+        try:
+            sbook = Workbook(self.__scenario)
+
+            for gsheet in sbook.worksheets:
+                group = self.__analyzegroup(gsheet=gsheet)
+                if group is None:
+                    print(f"[WARN]sheet {gsheet.name} is not valid test definition.")
+                    continue
+                self.__groups.append(group)
+
+        except Exception as ex:
+            pprint(ex)
+            return
+        finally:
+            if sbook is not None:
+                sbook.close()
+
+    def __iter__(self) -> list[TestGroup]:
+        return self.__groups
+
+    @property
+    def valid(self) -> bool:
+        return self.__valid
+
+    def __analyzegroup(self, gsheet: Worksheet) -> TestGroup | None:
+        pass
