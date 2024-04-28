@@ -36,7 +36,7 @@ def test_Config_seminormal_noname():
     assert not config.valid
 
 
-def test_Config_seminormal_notests():
+def test_Config_seminormal_noscopetests():
     configJson = {"scenario": "", "testsuites": [{"name": "testcase A"}]}
     config = Config(configJson)
     assert not config.valid
@@ -49,7 +49,10 @@ def test_Config_seminormal_nogroup():
 
 
 def test_Config_singletestcase():
-    configJson = {"scenario": "", "testsuites": [{"name": "testcase A"}]}
+    configJson = {
+        "scenario": "",
+        "testsuites": [{"name": "testcase A", "scope": "full"}],
+    }
     config = Config(configJson)
     assert config.valid
     assert config.scenario == ""
@@ -64,7 +67,11 @@ def test_Config_singletestcase2():
     configJson = {
         "scenario": "",
         "testsuites": [
-            {"name": "testcase A", "subject": "test for config with single testcase"}
+            {
+                "name": "testcase A",
+                "subject": "test for config with single testcase",
+                "scope": "full",
+            }
         ],
     }
     config = Config(configJson)
@@ -95,7 +102,10 @@ def test_Config_singletestcase3():
 def test_Config_twotestcases():
     configJson = {
         "scenario": "",
-        "testsuites": [{"name": "testcase A"}, {"name": "testcase B"}],
+        "testsuites": [
+            {"name": "testcase A", "scope": "full"},
+            {"name": "testcase B", "scope": "full"},
+        ],
     }
     config = Config(configJson)
     assert config.valid

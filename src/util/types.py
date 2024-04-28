@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime
 from collections import namedtuple
+from dataclasses import dataclass, field
 from enum import Enum
 from pprint import pprint
 from openpyxl.workbook.workbook import Workbook
@@ -22,19 +23,19 @@ class TestScope(Enum):
         raise ValueError(f"TestScope: no member of value {target_value}")
 
 
+@dataclass
 class TestSet:
-    def __init__(self) -> None:
-        self.group = ""
-        self.filters = list[str]()
-        self.ignores = list[str]()
+    group: str
+    filters: list[str] = field(default_factory=list)
+    ignores: list[str] = field(default_factory=list)
 
 
+@dataclass
 class TestSuite:
-    def __init__(self) -> None:
-        self.name = ""
-        self.subject = ""
-        self.scope = TestScope.FULL
-        self.tests = list[TestSet]()
+    name: str
+    subject: str
+    scope: TestScope = TestScope.FULL
+    tests: list[TestSet] = field(default_factory=list)
 
 
 class Config:
@@ -68,16 +69,17 @@ class Config:
                 "testsuite object must have 'scope' or 'tests'", testsuiteobj
             )
 
-        testsuite = TestSuite()
-        testsuite.name = testsuiteobj["name"]
-
         if "subject" in testsuiteobj:
-            testsuite.subject = testsuiteobj["subject"]
+            subject = testsuiteobj["subject"]
         else:
-            testsuite.subject = testsuite.name
+            subject = testsuiteobj["name"]
 
         if "scope" in testsuiteobj:
-            testsuite.scope = TestScope.value_of(testsuiteobj["scope"])
+            scope = TestScope.value_of(testsuiteobj["scope"])
+        else:
+            scope = TestScope.FULL
+
+        testsuite = TestSuite(name=testsuiteobj["name"], subject=subject, scope=scope)
 
         if "tests" in testsuiteobj:
             for testobj in testsuiteobj["tests"]:
@@ -90,8 +92,7 @@ class Config:
         if "group" not in testobj:
             raise ValueError("test object must have 'group'", testobj)
 
-        test = TestSet()
-        test.group = testobj["group"]
+        test = TestSet(group=testobj["group"])
         if "filters" in testobj:
             self.__parsecondition(testobj["filters"], test.filters)
 
@@ -106,49 +107,30 @@ class Config:
             conditions.append(raw.strip())
 
 
+@dataclass
 class TestCase:
-    def __init__(self, testId: str, module: str) -> None:
-        self.__id = testId
-        self.__module: str = module
-        self.__modulePath = Path(module).resolve()
+    testId: str
+    module: str
 
     @property
-    def testid(self) -> str:
-        return self.__id
-
-    @property
-    def module(self) -> Path:
-        return self.__modulePath
+    def modulePath(self) -> Path:
+        return Path(self.module).resolve()
 
 
+@dataclass
 class TestResult:
-    def __init__(self, testId: str, succeeded: bool, runned: datetime) -> None:
-        self.__id = testId
-        self.__succeeded = succeeded
-        self.__runned = runned
-
-    @property
-    def testid(self) -> str:
-        return self.__id
-
-    @property
-    def succeeded(self) -> bool:
-        return self.__succeeded
-
-    @property
-    def runned(self) -> datetime:
-        return self.__runned
+    testId: str
+    succeeded: bool
+    runned: datetime
 
 
+@dataclass
 class TestGroup:
-    def __init__(self, name: str) -> None:
-        self.__groupName = name
+    groupName: str
+
+    def __init__(self) -> None:
         self.__testcases: list[TestCase] = []
         self.__results: dict[str, TestResult] = {}
-
-    @property
-    def groupName(self) -> str:
-        return self.__groupName
 
     def addTestCase(self, testId: str, module: str) -> None:
         testcase = TestCase(testId=testId, module=module)
