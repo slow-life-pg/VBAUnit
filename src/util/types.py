@@ -6,9 +6,11 @@ from enum import Enum
 from pprint import pprint
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.descriptors.excel import CellRange
 
 
-ResultCount = namedtuple("succeeded", "failed")
+ResultCount = namedtuple("ResultCount", ["succeeded", "failed"])
+GroupSet = namedtuple("GroupSet", ["spec", "result"])
 
 
 class TestScope(Enum):
@@ -110,6 +112,7 @@ class Config:
 @dataclass
 class TestCase:
     testId: str
+    subject: str
     module: str
 
     @property
@@ -121,7 +124,7 @@ class TestCase:
 class TestResult:
     testId: str
     succeeded: bool
-    runned: datetime
+    runnedAt: datetime
 
 
 @dataclass
@@ -136,8 +139,8 @@ class TestGroup:
         testcase = TestCase(testId=testId, module=module)
         self.__testcases.append(testcase)
 
-    def setResult(self, testId: str, succeeded: bool, runned: datetime) -> None:
-        succeeded = TestResult(testId=testId, succeeded=succeeded, runned=runned)
+    def setResult(self, testId: str, succeeded: bool, runnedAt: datetime) -> None:
+        succeeded = TestResult(testId=testId, succeeded=succeeded, runnedAt=runnedAt)
         self.__results[testId] = succeeded
 
     def getResult(self, testId: str) -> TestResult | None:
@@ -170,6 +173,8 @@ class Scenario:
         self.__valid = True
         self.__scenario = str(scenarioPath)
         self.__groups: list[TestGroup] = []
+        self.__groupsIndex: dict[str, TestGroup] = {}
+        self.__resultsIndex: dict[str, TestResult | None] = {}
 
         # ファイル読み込み
         sbook = None
@@ -179,9 +184,15 @@ class Scenario:
             for gsheet in sbook.worksheets:
                 group = self.__analyzegroup(gsheet=gsheet)
                 if group is None:
-                    print(f"[WARN]sheet {gsheet.name} is not valid test definition.")
+                    print(f"[WARN]sheet '{gsheet.name}' is not valid test definition.")
                     continue
                 self.__groups.append(group)
+                self.__groupsIndex[group.groupName] = group
+                self.__resultsIndex[group.groupName] = None
+
+            if len(self.__groups) == 0:
+                print(f"[ERR]No test found in '{self.__scenario}'.")
+                self.__valid = False
 
         except Exception as ex:
             pprint(ex)
@@ -197,5 +208,29 @@ class Scenario:
     def valid(self) -> bool:
         return self.__valid
 
+    def group(self, groupName: str) -> tuple[TestCase, TestResult | None]:
+        if groupName not in self.__groupsIndex:
+            raise ValueError(f"[ERR]Unknown group name '{groupName}'.")
+
+        return GroupSet(
+            spec=self.__groupsIndex[groupName], result=self.__resultsIndex[groupName]
+        )
+
     def __analyzegroup(self, gsheet: Worksheet) -> TestGroup | None:
-        pass
+        if len(gsheet.tables.items()) != 1:
+            return None
+
+        defTableRef: tuple[str, CellRange] = gsheet.tables.items()[0]
+        _, defTable = defTableRef
+        defRange: tuple[tuple[str]] = gsheet[defTable]
+
+        if len(defRange) < 2:
+            return None
+
+        group = TestGroup(gsheet.title)
+        for row in range(1, len(defRange)):
+            defRow = defRange[row]
+            testCase = TestCase(testId=defRow[0], subject=defRow[1], module=defRow[2])
+            group.addTestCase(testCase)
+
+        return group

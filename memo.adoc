@@ -2,6 +2,14 @@
 :author: slow life pg
 :icons: font
 
+## type stub
+openpyxlをインストールしただけではmypyが全てを把握しきれないらしい。
+
+[source, shell]
+....
+python -m pip install types-openpyxl
+....
+
 ## テストモジュールの分離
 ツールは``src``、テストは``test``に書きたい。
 テスト実行時は親階層をまたぐため``import``できない。
@@ -12,7 +20,7 @@ pytest的には標準的な動きではないと注意しているブログも�
 
 mypyエラーは設定で回避。
 
-[source]
+[source, json]
 ....
 "python.analysis.extraPaths": [
     "${workspaceFolder}/src"
