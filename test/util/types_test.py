@@ -336,5 +336,64 @@ def test_Scenario_singletestcase():
     assert scenario.count == 1
     assert scenario[0].groupName == "Group A"
     assert scenario[0].count == 1
+    assert scenario[0][0].testId == "ID1"
+    assert scenario[0][0].subject == "Testcase 1"
+    assert scenario[0][0].module == "test1.py"
+
+    deletetestfiles()
+
+
+def test_Scenario_multitestcase():
+    element1 = ScenarioElement(id="ID1", subject="Testcase 1", module="test1.py")
+    element2 = ScenarioElement(id="ID2", subject="Testcase 2", module="test2.py")
+    element3 = ScenarioElement(id="ID3", subject="Testcase 3", module="test2.py")
+    scenarioPath = createscenariofile([("Group A", [element1, element2, element3])])
+    scenario = Scenario(scenarioPath=scenarioPath)
+    gc.collect()
+
+    assert scenario.valid
+    assert scenario.count == 1
+    assert scenario[0].groupName == "Group A"
+    assert scenario[0].count == 3
+    assert scenario[0][0].testId == "ID1"
+    assert scenario[0][0].subject == "Testcase 1"
+    assert scenario[0][0].module == "test1.py"
+    assert scenario[0][1].testId == "ID2"
+    assert scenario[0][1].subject == "Testcase 2"
+    assert scenario[0][1].module == "test2.py"
+    assert scenario[0][2].testId == "ID3"
+    assert scenario[0][2].subject == "Testcase 3"
+    assert scenario[0][2].module == "test2.py"
+
+    deletetestfiles()
+
+
+def test_Scenario_multigroup():
+    element1 = ScenarioElement(id="ID1", subject="Testcase 1", module="test1.py")
+    element2 = ScenarioElement(id="ID2", subject="Testcase 2", module="test2.py")
+    element3 = ScenarioElement(id="ID3", subject="Testcase 3", module="test2.py")
+    scenarioPath = createscenariofile(
+        [("Group A", [element1]), ("Group B", [element2]), ("Group C", [element3])]
+    )
+    scenario = Scenario(scenarioPath=scenarioPath)
+    gc.collect()
+
+    assert scenario.valid
+    assert scenario.count == 3
+    assert scenario[0].groupName == "Group A"
+    assert scenario[0].count == 1
+    assert scenario[0][0].testId == "ID1"
+    assert scenario[0][0].subject == "Testcase 1"
+    assert scenario[0][0].module == "test1.py"
+    assert scenario[1].groupName == "Group B"
+    assert scenario[1].count == 1
+    assert scenario[1][0].testId == "ID2"
+    assert scenario[1][0].subject == "Testcase 2"
+    assert scenario[1][0].module == "test2.py"
+    assert scenario[2].groupName == "Group C"
+    assert scenario[2].count == 1
+    assert scenario[2][0].testId == "ID3"
+    assert scenario[2][0].subject == "Testcase 3"
+    assert scenario[2][0].module == "test2.py"
 
     deletetestfiles()
