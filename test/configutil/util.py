@@ -76,11 +76,14 @@ def createscenariofile(scenarioobj: list[tuple[str, list[ScenarioElement]]]) -> 
     return scenarioPath
 
 
+<<<<<<< HEAD
 def deletefile(filePath: Path) -> None:
     if filePath.exists():
         filePath.unlink()
 
 
+=======
+>>>>>>> 0f39a064ab17268f1757bd216b40f93a53ab7ac0
 def deletetestfiles() -> None:
     testingTempDir = Path("testing").resolve()
     if testingTempDir.exists():

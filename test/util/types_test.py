@@ -243,6 +243,7 @@ def test_Config_twotestset():
 def test_Config_manytests():
     configJson = {
         "scenario": "c:\\dev\\excelvba\\target.xlsx",
+        "scenario": "c:\\dev\\excelvba\\target.xlsx",
         "testsuites": [
             {
                 "name": "testcase A",
@@ -264,6 +265,7 @@ def test_Config_manytests():
     }
     config = Config(configJson)
     assert config.valid
+    assert config.scenario == "c:\\dev\\excelvba\\target.xlsx"
     assert config.scenario == "c:\\dev\\excelvba\\target.xlsx"
     assert len(config.testsuites) == 3
 
