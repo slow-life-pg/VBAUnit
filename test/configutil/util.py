@@ -40,35 +40,46 @@ def deleteconfigfile(place: ConfigPlace) -> None:
 
 
 def createscenariofile(scenarioobj: list[tuple[str, list[ScenarioElement]]]) -> Path:
-    scenarioPath = Path("scenario.xlsx").resolve()
+    testingTempDir = Path("testing").resolve()
+    if not testingTempDir.exists():
+        testingTempDir.mkdir()
+    scenarioPath = testingTempDir.joinpath("scenario.xlsx")
 
     book = Workbook()
+    defaultSheets = book.sheetnames
 
     tableId = 1
     for group in scenarioobj:
+        print(f"create sheet: {group[0]}")
         sheet: Worksheet = book.create_sheet(group[0])
-        rows = len(group[1])
-        table = Table(id=tableId, ref=f"B2:D{rows+2}")
-        sheet.tables.add(table=table)
         sheet.cell(2, 2).value = "テストID"
         sheet.cell(2, 3).value = "説明"
         sheet.cell(2, 4).value = "モジュール"
         row = 3
         for testcase in group[1]:
+            print(f"case: {testcase}")
             sheet.cell(row, 2).value = testcase.id
             sheet.cell(row, 3).value = testcase.subject
             sheet.cell(row, 4).value = testcase.module
             row += 1
+        table = Table(id=tableId, ref=sheet.dimensions, displayName=f"Table{tableId}")
+        sheet.tables.add(table=table)
         tableId += 1
 
+    if len(book.worksheets) > len(defaultSheets):
+        for title in defaultSheets:
+            del book[title]
+    print(f"sheets: {book.worksheets}")
     book.save(str(scenarioPath))
+    book.close()
 
     return scenarioPath
 
 
-def deletescenariofile(scenarioPath: Path) -> None:
-    if scenarioPath.exists():
-        scenarioPath.unlink()
+def deletetestfiles() -> None:
+    testingTempDir = Path("testing").resolve()
+    if testingTempDir.exists():
+        shutil.rmtree(testingTempDir)
 
 
 def __getactualpath(place: ConfigPlace) -> Path:

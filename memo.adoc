@@ -10,6 +10,11 @@ openpyxlをインストールしただけではmypyが全てを把握しきれ�
 python -m pip install types-openpyxl
 ....
 
+## pytestでデバッグ
+コマンドパレットで``python config tests``を叩いて、``pytest``を選ぶ。
+
+成功すればサイドバーにフラスコアイコンが表示されるので、そこから個別に実行もデバッグもできる。
+
 ## テストモジュールの分離
 ツールは``src``、テストは``test``に書きたい。
 テスト実行時は親階層をまたぐため``import``できない。

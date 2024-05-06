@@ -1,5 +1,11 @@
 import pdb
-from util.types import Config, TestScope
+from pathlib import Path
+from util.types import Config, TestScope, Scenario
+from configutil.util import (
+    ScenarioElement,
+    createscenariofile,
+    deletetestfiles,
+)
 
 
 def test_Config_empty():
@@ -235,7 +241,7 @@ def test_Config_twotestset():
 
 def test_Config_manytests():
     configJson = {
-        "scenario": "c:\\dev\\excelvba\\target.xlsm",
+        "scenario": "c:\\dev\\excelvba\\target.xlsx",
         "testsuites": [
             {
                 "name": "testcase A",
@@ -257,7 +263,7 @@ def test_Config_manytests():
     }
     config = Config(configJson)
     assert config.valid
-    assert config.scenario == "c:\\dev\\excelvba\\target.xlsm"
+    assert config.scenario == "c:\\dev\\excelvba\\target.xlsx"
     assert len(config.testsuites) == 3
 
     assert config.testsuites[0].name == "testcase A"
@@ -286,3 +292,43 @@ def test_Config_manytests():
     assert config.testsuites[2].name == "testcase failed"
     assert config.testsuites[2].scope == TestScope.LASTFAILED
     assert len(config.testsuites[2].tests) == 0
+
+
+def test_Scenario_nofile():
+    testPath = Path("scenario.xlsx").resolve()
+    if testPath.exists():
+        testPath.unlink()
+    scenario = Scenario(testPath)
+    assert not scenario.valid
+
+
+def test_Scenario_nocontent():
+    # デフォルトのシートが勝手に作られるので実質"notestcase"と同じ
+    scenarioPath = createscenariofile([])
+    scenario = Scenario(scenarioPath=scenarioPath)
+
+    assert not scenario.valid
+
+    # deletetestfiles()
+
+
+def test_Scenario_notestcase():
+    scenarioPath = createscenariofile([("Group A", [])])
+    scenario = Scenario(scenarioPath=scenarioPath)
+
+    assert not scenario.valid
+
+    # deletetestfiles()
+
+
+def test_Scenario_singletestcase():
+    element1 = ScenarioElement(id="ID1", subject="Testcase 1", module="test1.py")
+    scenarioPath = createscenariofile([("Group A", [element1])])
+    scenario = Scenario(scenarioPath=scenarioPath)
+
+    assert scenario.valid
+    assert scenario.count == 1
+    assert scenario[0].groupName == "Group A"
+    assert scenario[0].count == 1
+
+    # deletetestfiles()

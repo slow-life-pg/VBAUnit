@@ -4,6 +4,7 @@ from collections import namedtuple
 from dataclasses import dataclass, field
 from enum import Enum
 from pprint import pprint
+from openpyxl import load_workbook
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.descriptors.excel import CellRange
@@ -131,12 +132,13 @@ class TestResult:
 class TestGroup:
     groupName: str
 
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
+        self.groupName = name
         self.__testcases: list[TestCase] = []
         self.__results: dict[str, TestResult] = {}
 
-    def addTestCase(self, testId: str, module: str) -> None:
-        testcase = TestCase(testId=testId, module=module)
+    def addTestCase(self, testId: str, subject: str, module: str) -> None:
+        testcase = TestCase(testId=testId, subject=subject, module=module)
         self.__testcases.append(testcase)
 
     def setResult(self, testId: str, succeeded: bool, runnedAt: datetime) -> None:
@@ -152,9 +154,18 @@ class TestGroup:
     def __iter__(self) -> list[TestCase]:
         return self.__testcases
 
+    def __getitem__(self, index: int) -> TestCase | None:
+        if index < 0 or len(self.__testcases) <= index:
+            return None
+        return self.__testcases[index]
+
     @property
     def results(self) -> list[TestResult]:
         return self.__results.values()
+
+    @property
+    def count(self) -> int:
+        return len(self.__testcases)
 
     @property
     def resultCount(self) -> ResultCount:
@@ -170,6 +181,11 @@ class TestGroup:
 
 class Scenario:
     def __init__(self, scenarioPath: Path) -> None:
+        if not scenarioPath.exists():
+            print(f"[ERR]file not exists. {str(scenarioPath)}")
+            self.__valid = False
+            return
+
         self.__valid = True
         self.__scenario = str(scenarioPath)
         self.__groups: list[TestGroup] = []
@@ -179,12 +195,13 @@ class Scenario:
         # ファイル読み込み
         sbook = None
         try:
-            sbook = Workbook(self.__scenario)
+            print(f"open scenario file: {self.__scenario}")
+            sbook = load_workbook(self.__scenario, read_only=True)
 
             for gsheet in sbook.worksheets:
                 group = self.__analyzegroup(gsheet=gsheet)
                 if group is None:
-                    print(f"[WARN]sheet '{gsheet.name}' is not valid test definition.")
+                    print(f"[WARN]sheet '{gsheet.title}' is not valid test definition.")
                     continue
                 self.__groups.append(group)
                 self.__groupsIndex[group.groupName] = group
@@ -196,17 +213,28 @@ class Scenario:
 
         except Exception as ex:
             pprint(ex)
+            self.__valid = False
             return
         finally:
             if sbook is not None:
+                print("close scenario file.")
                 sbook.close()
 
     def __iter__(self) -> list[TestGroup]:
         return self.__groups
 
+    def __getitem__(self, index: int) -> TestGroup | None:
+        if index < 0 or len(self.__groups) <= index:
+            return None
+        return self.__groups[index]
+
     @property
     def valid(self) -> bool:
         return self.__valid
+
+    @property
+    def count(self) -> int:
+        return len(self.__groups)
 
     def group(self, groupName: str) -> tuple[TestCase, TestResult | None]:
         if groupName not in self.__groupsIndex:
@@ -217,20 +245,19 @@ class Scenario:
         )
 
     def __analyzegroup(self, gsheet: Worksheet) -> TestGroup | None:
-        if len(gsheet.tables.items()) != 1:
+        if gsheet.cell(2, 2).value != "テストID":
             return None
-
-        defTableRef: tuple[str, CellRange] = gsheet.tables.items()[0]
-        _, defTable = defTableRef
-        defRange: tuple[tuple[str]] = gsheet[defTable]
-
-        if len(defRange) < 2:
+        if gsheet.cell(3, 2).value is None or gsheet.cell(3, 2).value == "":
             return None
 
         group = TestGroup(gsheet.title)
-        for row in range(1, len(defRange)):
-            defRow = defRange[row]
-            testCase = TestCase(testId=defRow[0], subject=defRow[1], module=defRow[2])
-            group.addTestCase(testCase)
+        row = 3
+        while gsheet.cell(row, 2).value is not None and gsheet.cell(row, 2).value != "":
+            group.addTestCase(
+                testId=gsheet.cell(row, 2).value,
+                subject=gsheet.cell(row, 3).value,
+                module=gsheet.cell(row, 4).value,
+            )
+            row += 1
 
         return group
