@@ -23,32 +23,32 @@ def getlocalscenariofilenam() -> str:
 
 
 def createconfigfile(place: ConfigPlace) -> Path:
-    configPath = __getactualpath(place=place)
-    jsonObj = {"scenario": getlocalscenariofilenam()}
-    with open(str(configPath), mode="wt", encoding="utf-8") as fp:
-        json.dump(obj=jsonObj, fp=fp)
-    return configPath
+    configpath = __getactualpath(place=place)
+    jsonobj = {"scenario": getlocalscenariofilenam()}
+    with open(str(configpath), mode="wt", encoding="utf-8") as fp:
+        json.dump(obj=jsonobj, fp=fp)
+    return configpath
 
 
 def deleteconfigfile(place: ConfigPlace) -> None:
-    configPath = __getactualpath(place=place)
-    if configPath.exists():
-        configPath.unlink()
+    configpath = __getactualpath(place=place)
+    if configpath.exists():
+        configpath.unlink()
     if place == ConfigPlace.OUTSIDE:
-        configDir = configPath.parent
-        shutil.rmtree(configDir, ignore_errors=True)
+        configdir = configpath.parent
+        shutil.rmtree(configdir, ignore_errors=True)
 
 
 def createscenariofile(scenarioobj: list[tuple[str, list[ScenarioElement]]]) -> Path:
-    testingTempDir = Path("testing").resolve()
-    if not testingTempDir.exists():
-        testingTempDir.mkdir()
-    scenarioPath = testingTempDir.joinpath("scenario.xlsx")
+    testingtempdir = Path("testing").resolve()
+    if not testingtempdir.exists():
+        testingtempdir.mkdir()
+    scenariopath = testingtempdir.joinpath("scenario.xlsx")
 
     book = Workbook()
-    defaultSheets = book.sheetnames
+    defaultsheets = book.sheetnames
 
-    tableId = 1
+    tableid = 1
     for group in scenarioobj:
         print(f"create sheet: {group[0]}")
         sheet: Worksheet = book.create_sheet(group[0])
@@ -62,29 +62,29 @@ def createscenariofile(scenarioobj: list[tuple[str, list[ScenarioElement]]]) -> 
             sheet.cell(row, 3).value = testcase.subject
             sheet.cell(row, 4).value = testcase.module
             row += 1
-        table = Table(id=tableId, ref=sheet.dimensions, displayName=f"Table{tableId}")
+        table = Table(id=tableid, ref=sheet.dimensions, displayName=f"Table{tableid}")
         sheet.tables.add(table=table)
-        tableId += 1
+        tableid += 1
 
-    if len(book.worksheets) > len(defaultSheets):
-        for title in defaultSheets:
+    if len(book.worksheets) > len(defaultsheets):
+        for title in defaultsheets:
             del book[title]
     print(f"sheets: {book.worksheets}")
-    book.save(str(scenarioPath))
+    book.save(str(scenariopath))
     book.close()
 
-    return scenarioPath
+    return scenariopath
 
 
-def deletefile(filePath: Path) -> None:
-    if filePath.exists():
-        filePath.unlink()
+def deletefile(filepath: Path) -> None:
+    if filepath.exists():
+        filepath.unlink()
 
 
 def deletetestfiles() -> None:
-    testingTempDir = Path("testing").resolve()
-    if testingTempDir.exists():
-        shutil.rmtree(testingTempDir)
+    testingtempdir = Path("testing").resolve()
+    if testingtempdir.exists():
+        shutil.rmtree(testingtempdir)
 
 
 def __getactualpath(place: ConfigPlace) -> Path:
@@ -99,12 +99,12 @@ def __getactualpath(place: ConfigPlace) -> Path:
 
 
 def __getlocalconfigpath() -> Path:
-    localDir = Path.cwd()
-    localConfigPath = localDir.joinpath("config.json")
-    return localConfigPath
+    localdir = Path.cwd()
+    localconfigpath = localdir.joinpath("config.json")
+    return localconfigpath
 
 
 def __gettoolconfigpath() -> Path:
-    toolDir = gettooldir()
-    toolConfigPath = toolDir.joinpath("config.json")
-    return toolConfigPath
+    tooldir = gettooldir()
+    toolconfigpath = tooldir.joinpath("config.json")
+    return toolconfigpath

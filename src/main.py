@@ -7,92 +7,92 @@ from util.types import Config
 
 
 def analyzeargs(argv: list[str]) -> str:
-    if len(sys.argv) == 1 or len(sys.argv) > 3:
+    if len(argv) == 1 or len(argv) > 3:
         print("Usage:")
         print("python main.py {testsuite name} [{working directory}]")
         print()
         sys.exit()
 
-    if len(sys.argv) > 2:
+    if len(argv) > 2:
         # 引数があればカレントディレクトリに設定
-        argPath = Path(sys.argv[2])
-        if argPath.exists():
-            changecurdir(argPath)
+        argpath = Path(argv[2])
+        if argpath.exists():
+            changecurdir(argpath)
 
-    return sys.argv[1]
+    return argv[1]
 
 
-def printstartmessage(currentDir: Path, toolDir: Path) -> None:
+def printstartmessage(currentdir: Path, tooldir: Path) -> None:
     print("****************************************")
-    print(f"VBAUnit kicked on {currentDir}")
-    print(f"Tool is in {toolDir}")
+    print(f"VBAUnit kicked on {currentdir}")
+    print(f"Tool is in {tooldir}")
     print(f"{datetime.now()}")
     print()
 
 
-def changecurdir(newDir: Path) -> None:
-    runDir = newDir.resolve()
-    os.chdir(runDir)
+def changecurdir(newdir: Path) -> None:
+    rundir = newdir.resolve()
+    os.chdir(rundir)
 
 
-def getconfigpath(currentDir: Path, toolDir: Path) -> Path:
-    configPath = currentDir.joinpath("config.json")
-    if not configPath.exists():
+def getconfigpath(currentdir: Path, tooldir: Path) -> Path:
+    configpath = currentdir.joinpath("config.json")
+    if not configpath.exists():
         print("[warn] config get from tool directory")
-        configPath = toolDir.joinpath("config.json")
+        configpath = tooldir.joinpath("config.json")
 
-    return configPath
+    return configpath
 
 
-def getconfig(configPath: Path) -> Config:
-    with open(str(configPath), encoding="utf-8") as fc:
+def getconfig(configpath: Path) -> Config:
+    with open(str(configpath), encoding="utf-8") as fc:
         jsondict = json.load(fc)
 
-    config = Config(jsondict=jsondict)
-    return config
+    testconfig = Config(jsondict=jsondict)
+    return testconfig
 
 
 def getscenariopath(scenario: str) -> Path:
-    scenarioPath = Path(scenario)
-    if scenarioPath.is_absolute():
+    scenariopath = Path(scenario)
+    if scenariopath.is_absolute():
         print("absolute scenario path")
     else:
         print(f"relative scenario path based on {Path.cwd()}")
-        scenarioPath = scenarioPath.resolve()
-        print(f"resolved: {scenarioPath}")
+        scenariopath = scenariopath.resolve()
+        print(f"resolved: {scenariopath}")
 
-    return scenarioPath
+    return scenariopath
 
 
-def getbridgepath(toolDir: Path) -> Path:
-    return toolDir.joinpath("VBAUnitCOMBridge.xlsm")
+def getbridgepath(tooldir: Path) -> Path:
+    return tooldir.joinpath("VBAUnitCOMBridge.xlsm")
 
 
 if __name__ == "__main__":
     testsuite = analyzeargs(sys.argv)
 
-    currentDir = Path.cwd()
-    toolDir = Path(__file__).parent
-    printstartmessage(currentDir=currentDir, toolDir=toolDir)
+    currentdir = Path.cwd()
+    tooldir = Path(__file__).parent
+    printstartmessage(currentdir=currentdir, tooldir=tooldir)
 
-    cocnfigPath = getconfigpath(currentDir=currentDir, toolDir=toolDir)
-    if not cocnfigPath.exists():
+    cocnfigpath = getconfigpath(currentdir=currentdir, tooldir=tooldir)
+    if not cocnfigpath.exists():
         print("config.json not exists")
         sys.exit()
 
-    config = getconfig(configPath=cocnfigPath)
+    config = getconfig(configpath=cocnfigpath)
     print(f"start with: {config.scenario}")
 
-    scenarioPath = getscenariopath(config.scenario)
-    if not scenarioPath.exists():
+    scenariopath = getscenariopath(config.scenario)
+    if not scenariopath.exists():
         print("scenario not exists")
         sys.exit()
 
     print()
     print("run test!")
 
-    bridgePath = getbridgepath(toolDir=toolDir)
+    bridgepath = getbridgepath(tooldir=tooldir)
 
-    print(f"using: {bridgePath}")
+    print(f"using: {bridgepath}")
 
-    sys.path.append(str(toolDir))
+    sys.path.append(str(tooldir))

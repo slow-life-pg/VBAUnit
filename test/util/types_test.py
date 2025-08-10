@@ -9,58 +9,58 @@ from configutil.util import (
 )
 
 
-def test_Config_empty():
-    configJson = {"scenario": "", "testsuites": []}
-    config = Config(configJson)
+def test_config_empty():
+    configjson = {"scenario": "", "testsuites": []}
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 0
 
 
-def test_Config_senarioname():
-    configJson = {"scenario": "scenario\\book.xlsx", "testsuites": []}
-    config = Config(configJson)
+def test_config_senarioname():
+    configjson = {"scenario": "scenario\\book.xlsx", "testsuites": []}
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == "scenario\\book.xlsx"
     assert len(config.testsuites) == 0
 
 
-def test_Config_seminormal_noscenario():
-    configJson = {"testsuites": []}
-    config = Config(configJson)
+def test_config_seminormal_noscenario():
+    configjson = {"testsuites": []}
+    config = Config(configjson)
     assert not config.valid
 
 
-def test_Config_seminormal_notestsuites():
-    configJson = {"scenario": ""}
-    config = Config(configJson)
+def test_config_seminormal_notestsuites():
+    configjson = {"scenario": ""}
+    config = Config(configjson)
     assert not config.valid
 
 
-def test_Config_seminormal_noname():
-    configJson = {"scenario": "", "testsuites": [{"tests": []}]}
-    config = Config(configJson)
+def test_config_seminormal_noname():
+    configjson = {"scenario": "", "testsuites": [{"tests": []}]}
+    config = Config(configjson)
     assert not config.valid
 
 
-def test_Config_seminormal_noscopetests():
-    configJson = {"scenario": "", "testsuites": [{"name": "testcase A"}]}
-    config = Config(configJson)
+def test_config_seminormal_noscopetests():
+    configjson = {"scenario": "", "testsuites": [{"name": "testcase A"}]}
+    config = Config(configjson)
     assert not config.valid
 
 
-def test_Config_seminormal_nogroup():
-    configJson = {"scenario": "", "testsuites": [{"name": "testcase A", "tests": [{}]}]}
-    config = Config(configJson)
+def test_config_seminormal_nogroup():
+    configjson = {"scenario": "", "testsuites": [{"name": "testcase A", "tests": [{}]}]}
+    config = Config(configjson)
     assert not config.valid
 
 
-def test_Config_singletestcase():
-    configJson = {
+def test_config_singletestcase():
+    configjson = {
         "scenario": "",
         "testsuites": [{"name": "testcase A", "scope": "full"}],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -70,8 +70,8 @@ def test_Config_singletestcase():
     assert len(config.testsuites[0].tests) == 0
 
 
-def test_Config_singletestcase2():
-    configJson = {
+def test_config_singletestcase2():
+    configjson = {
         "scenario": "",
         "testsuites": [
             {
@@ -81,7 +81,7 @@ def test_Config_singletestcase2():
             }
         ],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -91,12 +91,12 @@ def test_Config_singletestcase2():
     assert len(config.testsuites[0].tests) == 0
 
 
-def test_Config_singletestcase3():
-    configJson = {
+def test_config_singletestcase3():
+    configjson = {
         "scenario": "",
         "testsuites": [{"name": "testcase A", "scope": "lastfailed"}],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -106,15 +106,15 @@ def test_Config_singletestcase3():
     assert len(config.testsuites[0].tests) == 0
 
 
-def test_Config_twotestcases():
-    configJson = {
+def test_config_twotestcases():
+    configjson = {
         "scenario": "",
         "testsuites": [
             {"name": "testcase A", "scope": "full"},
             {"name": "testcase B", "scope": "full"},
         ],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 2
@@ -128,12 +128,12 @@ def test_Config_twotestcases():
     assert len(config.testsuites[1].tests) == 0
 
 
-def test_Config_singletestset():
-    configJson = {
+def test_config_singletestset():
+    configjson = {
         "scenario": "",
         "testsuites": [{"name": "testcase A", "tests": [{"group": "Group A"}]}],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -144,14 +144,14 @@ def test_Config_singletestset():
     assert len(config.testsuites[0].tests[0].ignores) == 0
 
 
-def test_Config_singletestset2():
-    configJson = {
+def test_config_singletestset2():
+    configjson = {
         "scenario": "",
         "testsuites": [
             {"name": "testcase A", "tests": [{"group": "Group A", "filters": "warn"}]}
         ],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -163,8 +163,8 @@ def test_Config_singletestset2():
     assert len(config.testsuites[0].tests[0].ignores) == 0
 
 
-def test_Config_singletestset3():
-    configJson = {
+def test_config_singletestset3():
+    configjson = {
         "scenario": "",
         "testsuites": [
             {
@@ -173,7 +173,7 @@ def test_Config_singletestset3():
             }
         ],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -186,8 +186,8 @@ def test_Config_singletestset3():
     assert len(config.testsuites[0].tests[0].ignores) == 0
 
 
-def test_Config_singletestset4():
-    configJson = {
+def test_config_singletestset4():
+    configjson = {
         "scenario": "",
         "testsuites": [
             {
@@ -196,7 +196,7 @@ def test_Config_singletestset4():
             }
         ],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -209,8 +209,8 @@ def test_Config_singletestset4():
     assert config.testsuites[0].tests[0].ignores[1] == "error"
 
 
-def test_Config_twotestset():
-    configJson = {
+def test_config_twotestset():
+    configjson = {
         "scenario": "",
         "testsuites": [
             {
@@ -222,7 +222,7 @@ def test_Config_twotestset():
             }
         ],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == ""
     assert len(config.testsuites) == 1
@@ -240,9 +240,8 @@ def test_Config_twotestset():
     assert config.testsuites[0].tests[1].ignores[1] == "error"
 
 
-def test_Config_manytests():
-    configJson = {
-        "scenario": "c:\\dev\\excelvba\\target.xlsx",
+def test_config_manytests():
+    configjson = {
         "scenario": "c:\\dev\\excelvba\\target.xlsx",
         "testsuites": [
             {
@@ -263,7 +262,7 @@ def test_Config_manytests():
             {"name": "testcase failed", "scope": "lastfailed"},
         ],
     }
-    config = Config(configJson)
+    config = Config(configjson)
     assert config.valid
     assert config.scenario == "c:\\dev\\excelvba\\target.xlsx"
     assert config.scenario == "c:\\dev\\excelvba\\target.xlsx"
@@ -297,7 +296,7 @@ def test_Config_manytests():
     assert len(config.testsuites[2].tests) == 0
 
 
-def test_Scenario_nofile():
+def test_scenario_nofile():
     testPath = Path("scenario.xlsx").resolve()
     if testPath.exists():
         testPath.unlink()
@@ -305,10 +304,10 @@ def test_Scenario_nofile():
     assert not scenario.valid
 
 
-def test_Scenario_nocontent():
+def test_scenario_nocontent():
     # デフォルトのシートが勝手に作られるので実質"notestcase"と同じ
-    scenarioPath = createscenariofile([])
-    scenario = Scenario(scenarioPath=scenarioPath)
+    scenariopath = createscenariofile([])
+    scenario = Scenario(scenariopath=scenariopath)
     gc.collect()
 
     assert not scenario.valid
@@ -316,9 +315,9 @@ def test_Scenario_nocontent():
     deletetestfiles()
 
 
-def test_Scenario_notestcase():
-    scenarioPath = createscenariofile([("Group A", [])])
-    scenario = Scenario(scenarioPath=scenarioPath)
+def test_scenario_notestcase():
+    scenariopath = createscenariofile([("Group A", [])])
+    scenario = Scenario(scenariopath=scenariopath)
     gc.collect()
 
     assert not scenario.valid
@@ -326,73 +325,73 @@ def test_Scenario_notestcase():
     deletetestfiles()
 
 
-def test_Scenario_singletestcase():
+def test_scenario_singletestcase():
     element1 = ScenarioElement(id="ID1", subject="Testcase 1", module="test1.py")
-    scenarioPath = createscenariofile([("Group A", [element1])])
-    scenario = Scenario(scenarioPath=scenarioPath)
+    scenariopath = createscenariofile([("Group A", [element1])])
+    scenario = Scenario(scenariopath=scenariopath)
     gc.collect()
 
     assert scenario.valid
     assert scenario.count == 1
-    assert scenario[0].groupName == "Group A"
+    assert scenario[0].groupname == "Group A"
     assert scenario[0].count == 1
-    assert scenario[0][0].testId == "ID1"
+    assert scenario[0][0].testid == "ID1"
     assert scenario[0][0].subject == "Testcase 1"
     assert scenario[0][0].module == "test1.py"
 
     deletetestfiles()
 
 
-def test_Scenario_multitestcase():
+def test_scenario_multitestcase():
     element1 = ScenarioElement(id="ID1", subject="Testcase 1", module="test1.py")
     element2 = ScenarioElement(id="ID2", subject="Testcase 2", module="test2.py")
     element3 = ScenarioElement(id="ID3", subject="Testcase 3", module="test2.py")
-    scenarioPath = createscenariofile([("Group A", [element1, element2, element3])])
-    scenario = Scenario(scenarioPath=scenarioPath)
+    scenariopath = createscenariofile([("Group A", [element1, element2, element3])])
+    scenario = Scenario(scenariopath=scenariopath)
     gc.collect()
 
     assert scenario.valid
     assert scenario.count == 1
-    assert scenario[0].groupName == "Group A"
+    assert scenario[0].groupname == "Group A"
     assert scenario[0].count == 3
-    assert scenario[0][0].testId == "ID1"
+    assert scenario[0][0].testid == "ID1"
     assert scenario[0][0].subject == "Testcase 1"
     assert scenario[0][0].module == "test1.py"
-    assert scenario[0][1].testId == "ID2"
+    assert scenario[0][1].testid == "ID2"
     assert scenario[0][1].subject == "Testcase 2"
     assert scenario[0][1].module == "test2.py"
-    assert scenario[0][2].testId == "ID3"
+    assert scenario[0][2].testid == "ID3"
     assert scenario[0][2].subject == "Testcase 3"
     assert scenario[0][2].module == "test2.py"
 
     deletetestfiles()
 
 
-def test_Scenario_multigroup():
+def test_scenario_multigroup():
     element1 = ScenarioElement(id="ID1", subject="Testcase 1", module="test1.py")
     element2 = ScenarioElement(id="ID2", subject="Testcase 2", module="test2.py")
     element3 = ScenarioElement(id="ID3", subject="Testcase 3", module="test2.py")
-    scenarioPath = createscenariofile(
+    scenariopath = createscenariofile(
         [("Group A", [element1]), ("Group B", [element2]), ("Group C", [element3])]
     )
-    scenario = Scenario(scenarioPath=scenarioPath)
+    scenario = Scenario(scenariopath=scenariopath)
     gc.collect()
 
     assert scenario.valid
     assert scenario.count == 3
-    assert scenario[0].groupName == "Group A"
+    assert scenario[0].groupname == "Group A"
     assert scenario[0].count == 1
-    assert scenario[0][0].testId == "ID1"
+    assert scenario[0][0].testid == "ID1"
     assert scenario[0][0].subject == "Testcase 1"
     assert scenario[0][0].module == "test1.py"
-    assert scenario[1].groupName == "Group B"
+    assert scenario[1].groupname == "Group B"
     assert scenario[1].count == 1
-    assert scenario[1][0].testId == "ID2"
+    assert scenario[1][0].testid == "ID2"
     assert scenario[1][0].subject == "Testcase 2"
     assert scenario[1][0].module == "test2.py"
-    assert scenario[2].groupName == "Group C"
+    assert scenario[2].groupname == "Group C"
     assert scenario[2].count == 1
-    assert scenario[2][0].testId == "ID3"
+    assert scenario[2][0].testid == "ID3"
     assert scenario[2][0].subject == "Testcase 3"
     assert scenario[2][0].module == "test2.py"
 

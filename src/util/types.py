@@ -53,8 +53,12 @@ class Config:
         try:
             self.scenario = jsondict["scenario"]
             self.__parsetestsuites(testsuitesobj=jsondict["testsuites"])
+        except ValueError as ve:
+            print("config parse value error:")
+            pprint(ve)
+            self.valid = False
         except Exception as e:
-            print("config parse error:")
+            print("config parse unknown error:")
             pprint(e)
             self.valid = False
 
@@ -105,54 +109,59 @@ class Config:
         return test
 
     def __parsecondition(self, condition: str, conditions: list[str]) -> None:
-        rawConditions = condition.split("|")
-        for raw in rawConditions:
+        rawconditions = condition.split("|")
+        for raw in rawconditions:
             conditions.append(raw.strip())
 
 
 @dataclass
 class TestCase:
-    testId: str
+    testid: str
     subject: str
     module: str
 
     @property
-    def modulePath(self) -> Path:
+    def modulepath(self) -> Path:
         return Path(self.module).resolve()
 
 
 @dataclass
 class TestResult:
-    testId: str
+    testid: str
     succeeded: bool
-    runnedAt: datetime
+    runned_at: datetime
 
 
 @dataclass
 class TestGroup:
-    groupName: str
+    groupname: str
 
     def __init__(self, name: str) -> None:
-        self.groupName = name
+        self.groupname = name
         self.__testcases: list[TestCase] = []
         self.__results: dict[str, TestResult] = {}
 
-    def addTestCase(self, testId: str, subject: str, module: str) -> None:
-        testcase = TestCase(testId=testId, subject=subject, module=module)
+    def add_test_case(self, testdd: str, subject: str, module: str) -> None:
+        testcase = TestCase(testid=testdd, subject=subject, module=module)
         self.__testcases.append(testcase)
 
-    def setResult(self, testId: str, succeeded: bool, runnedAt: datetime) -> None:
-        succeeded = TestResult(testId=testId, succeeded=succeeded, runnedAt=runnedAt)
-        self.__results[testId] = succeeded
+    def set_result(self, testid: str, succeeded: bool, runned_at: datetime) -> None:
+        succeeded = TestResult(testid=testid, succeeded=succeeded, runned_at=runned_at)
+        self.__results[testid] = succeeded
 
-    def getResult(self, testId: str) -> TestResult | None:
-        if testId in self.__results:
-            return self.__results[testId]
+    def get_result(self, testid: str) -> TestResult | None:
+        if testid in self.__results:
+            return self.__results[testid]
         else:
             return None
 
     def __iter__(self) -> list[TestCase]:
-        return self.__testcases
+        return self
+
+    def __next__(self) -> TestCase | None:
+        if not self.__testcases:
+            return None
+        return self.__testcases.pop(0)
 
     def __getitem__(self, index: int) -> TestCase | None:
         if index < 0 or len(self.__testcases) <= index:
@@ -168,7 +177,7 @@ class TestGroup:
         return len(self.__testcases)
 
     @property
-    def resultCount(self) -> ResultCount:
+    def resultcount(self) -> ResultCount:
         success = 0
         fail = 0
         for result in self.__results.values():
@@ -180,17 +189,17 @@ class TestGroup:
 
 
 class Scenario:
-    def __init__(self, scenarioPath: Path) -> None:
-        if not scenarioPath.exists():
-            print(f"[ERR]file not exists. {str(scenarioPath)}")
+    def __init__(self, scenariopath: Path) -> None:
+        if not scenariopath.exists():
+            print(f"[ERR]file not exists. {str(scenariopath)}")
             self.__valid = False
             return
 
         self.__valid = True
-        self.__scenario = str(scenarioPath)
+        self.__scenario = str(scenariopath)
         self.__groups: list[TestGroup] = []
-        self.__groupsIndex: dict[str, TestGroup] = {}
-        self.__resultsIndex: dict[str, TestResult | None] = {}
+        self.__groupsindex: dict[str, TestGroup] = {}
+        self.__resultsindex: dict[str, TestResult | None] = {}
 
         # ファイル読み込み
         sbook = None
@@ -204,24 +213,33 @@ class Scenario:
                     print(f"[WARN]sheet '{gsheet.title}' is not valid test definition.")
                     continue
                 self.__groups.append(group)
-                self.__groupsIndex[group.groupName] = group
-                self.__resultsIndex[group.groupName] = None
+                self.__groupsindex[group.groupname] = group
+                self.__resultsindex[group.groupname] = None
 
             if len(self.__groups) == 0:
                 print(f"[ERR]No test found in '{self.__scenario}'.")
                 self.__valid = False
 
-        except Exception as ex:
-            pprint(ex)
+        except ValueError as ve:
+            print("Scenario parse value error :")
+            pprint(ve)
             self.__valid = False
-            return
+        except Exception as e:
+            print("Scenario parse unknown error :")
+            pprint(e)
+            self.__valid = False
         finally:
             if sbook is not None:
                 print("close scenario file.")
                 sbook.close()
 
     def __iter__(self) -> list[TestGroup]:
-        return self.__groups
+        return self
+
+    def __next__(self) -> TestGroup | None:
+        if not self.__groups:
+            return None
+        return self.__groups.pop(0)
 
     def __getitem__(self, index: int) -> TestGroup | None:
         if index < 0 or len(self.__groups) <= index:
@@ -236,12 +254,12 @@ class Scenario:
     def count(self) -> int:
         return len(self.__groups)
 
-    def group(self, groupName: str) -> tuple[TestCase, TestResult | None]:
-        if groupName not in self.__groupsIndex:
-            raise ValueError(f"[ERR]Unknown group name '{groupName}'.")
+    def group(self, groupname: str) -> tuple[TestCase, TestResult | None]:
+        if groupname not in self.__groupsindex:
+            raise ValueError(f"[ERR]Unknown group name '{groupname}'.")
 
         return GroupSet(
-            spec=self.__groupsIndex[groupName], result=self.__resultsIndex[groupName]
+            spec=self.__groupsindex[groupname], result=self.__resultsindex[groupname]
         )
 
     def __analyzegroup(self, gsheet: Worksheet) -> TestGroup | None:
@@ -253,8 +271,8 @@ class Scenario:
         group = TestGroup(gsheet.title)
         row = 3
         while gsheet.cell(row, 2).value is not None and gsheet.cell(row, 2).value != "":
-            group.addTestCase(
-                testId=gsheet.cell(row, 2).value,
+            group.add_test_case(
+                testdd=gsheet.cell(row, 2).value,
                 subject=gsheet.cell(row, 3).value,
                 module=gsheet.cell(row, 4).value,
             )

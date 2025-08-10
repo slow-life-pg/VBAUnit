@@ -8,7 +8,7 @@ from configutil.util import (
 )
 import main
 
-#### このやり方もあるにはある　→　今回はconftest.pyで行ってみる
+# このやり方もあるにはある　→　今回はconftest.pyで行ってみる
 # import pytest
 # @pytest.fixture
 # def main_fixture():
@@ -24,12 +24,12 @@ import main
 
 
 def assertconfigpath_boilerplate(place: ConfigPlace) -> None:
-    curDir = Path.cwd()
-    toolDir = gettooldir()
-    filePath = createconfigfile(place=place)
+    curdir = Path.cwd()
+    tooldir = gettooldir()
+    filepath = createconfigfile(place=place)
     try:
-        configPath = main.getconfigpath(currentDir=curDir, toolDir=toolDir)
-        assert str(configPath) == str(filePath)
+        configpath = main.getconfigpath(currentdir=curdir, tooldir=tooldir)
+        assert str(configpath) == str(filepath)
     finally:
         deleteconfigfile(place=place)
 
@@ -43,24 +43,24 @@ def test_getconfigpath_intool():
 
 
 def test_getconfigpath_inoutside():
-    outsidePath = Path.cwd().joinpath("outside")
-    if not outsidePath.exists():
-        outsidePath.mkdir()
-    main.changecurdir(outsidePath)
+    outsidepath = Path.cwd().joinpath("outside")
+    if not outsidepath.exists():
+        outsidepath.mkdir()
+    main.changecurdir(outsidepath)
     assertconfigpath_boilerplate(ConfigPlace.OUTSIDE)
 
 
 def test_getconfig_normal():
-    configPath = createconfigfile(ConfigPlace.LOCAL)
-    config = main.getconfig(configPath=configPath)
+    configpath = createconfigfile(ConfigPlace.LOCAL)
+    config = main.getconfig(configpath=configpath)
     assert config.scenario == getlocalscenariofilenam()
 
 
 def test_getscenariopath_relative():
-    cwdScenarioPath = Path.cwd().joinpath(getlocalscenariofilenam())
-    assert main.getscenariopath(getlocalscenariofilenam()) == cwdScenarioPath
+    cwd_scenariopath = Path.cwd().joinpath(getlocalscenariofilenam())
+    assert main.getscenariopath(getlocalscenariofilenam()) == cwd_scenariopath
 
 
 def test_getscenariopath_absolute():
-    absScenarioPath = Path("c:\\test").joinpath(getlocalscenariofilenam())
-    assert main.getscenariopath(str(absScenarioPath)) == absScenarioPath
+    abs_scenariopath = Path("c:\\test").joinpath(getlocalscenariofilenam())
+    assert main.getscenariopath(str(abs_scenariopath)) == abs_scenariopath
