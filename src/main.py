@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from util.types import Config
+from runner.run import run_testsuite
 
 
 def analyzeargs(argv: list[str]) -> str:
@@ -71,6 +72,8 @@ def getbridgepath(tooldir: Path) -> Path:
 if __name__ == "__main__":
     testsuite = analyzeargs(sys.argv)
 
+    # Config取得
+
     currentdir = Path.cwd()
     tooldir = Path(__file__).parent
     printstartmessage(currentdir=currentdir, tooldir=tooldir)
@@ -83,16 +86,22 @@ if __name__ == "__main__":
     config = getconfig(configpath=cocnfigpath)
     print(f"start with: {config.scenario}")
 
+    # テストパス設定
+
     scenariopath = getscenariopath(config.scenario)
     if not scenariopath.exists():
         print("scenario not exists")
         sys.exit()
 
-    print()
-    print("run test!")
-
     bridgepath = getbridgepath(tooldir=tooldir)
 
     print(f"using: {bridgepath}")
 
-    sys.path.append(str(tooldir))
+    sys.path.append(str(tooldir))  # テストコードの方でvbaunit_libが使えるようになる
+
+    # テスト実行
+
+    print()
+    print("run test!")
+
+    run_testsuite(config=config)

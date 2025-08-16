@@ -337,7 +337,7 @@ def test_scenario_singletestcase():
     assert scenario[0].count == 1
     assert scenario[0][0].testid == "ID1"
     assert scenario[0][0].subject == "Testcase 1"
-    assert scenario[0][0].module == "test1.py"
+    assert scenario[0][0].testid == "test1.py"
 
     deletetestfiles()
 
@@ -356,13 +356,13 @@ def test_scenario_multitestcase():
     assert scenario[0].count == 3
     assert scenario[0][0].testid == "ID1"
     assert scenario[0][0].subject == "Testcase 1"
-    assert scenario[0][0].module == "test1.py"
+    assert scenario[0][0].testid == "test1.py"
     assert scenario[0][1].testid == "ID2"
     assert scenario[0][1].subject == "Testcase 2"
-    assert scenario[0][1].module == "test2.py"
+    assert scenario[0][1].testid == "test2.py"
     assert scenario[0][2].testid == "ID3"
     assert scenario[0][2].subject == "Testcase 3"
-    assert scenario[0][2].module == "test2.py"
+    assert scenario[0][2].testid == "test2.py"
 
     deletetestfiles()
 
@@ -383,16 +383,16 @@ def test_scenario_multigroup():
     assert scenario[0].count == 1
     assert scenario[0][0].testid == "ID1"
     assert scenario[0][0].subject == "Testcase 1"
-    assert scenario[0][0].module == "test1.py"
+    assert scenario[0][0].testid == "test1.py"
     assert scenario[1].groupname == "Group B"
     assert scenario[1].count == 1
     assert scenario[1][0].testid == "ID2"
     assert scenario[1][0].subject == "Testcase 2"
-    assert scenario[1][0].module == "test2.py"
+    assert scenario[1][0].testid == "test2.py"
     assert scenario[2].groupname == "Group C"
     assert scenario[2].count == 1
     assert scenario[2][0].testid == "ID3"
     assert scenario[2][0].subject == "Testcase 3"
-    assert scenario[2][0].module == "test2.py"
+    assert scenario[2][0].testid == "test2.py"
 
     deletetestfiles()

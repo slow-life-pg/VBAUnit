@@ -1,13 +1,13 @@
 from pathlib import Path
+from importlib import import_module
 from datetime import datetime
 from collections import namedtuple
 from dataclasses import dataclass, field
+from typing import Iterator
 from enum import Enum
 from pprint import pprint
 from openpyxl import load_workbook
-from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.descriptors.excel import CellRange
 
 
 ResultCount = namedtuple("ResultCount", ["succeeded", "failed"])
@@ -15,6 +15,11 @@ GroupSet = namedtuple("GroupSet", ["spec", "result"])
 
 
 class TestScope(Enum):
+    """どの範囲をテストするか
+    FULL: グループに含まれるテストケース全て
+    LASTFAILED: グループの中でも前回の実行で失敗したテストケースのみ
+    """
+
     FULL = "full"
     LASTFAILED = "lastfailed"
 
@@ -28,6 +33,11 @@ class TestScope(Enum):
 
 @dataclass
 class TestSet:
+    """あるグループの中でどのテストケースを実行するか定義するテストセット
+    filters: 実行するべきテストケースの関数名に含まれる識別子（任意の文字列）。"|"区切り
+    ignores: 無視するテストケースの関数名に含まれる識別子（任意の文字列）。"|"区切り
+    """
+
     group: str
     filters: list[str] = field(default_factory=list)
     ignores: list[str] = field(default_factory=list)
@@ -35,17 +45,37 @@ class TestSet:
 
 @dataclass
 class TestSuite:
+    """まとめて実行するテストケースのまとまり
+    name: テストスイートの名前。ログに書かれるのと、「前回の実行」を識別するもの
+    subject: テストスイートの説明。任意
+    scope: テストスイートの実行範囲。デフォルトはFULL
+    tests: 実行するテストセットのリスト
+    """
+
     name: str
     subject: str
     scope: TestScope = TestScope.FULL
     tests: list[TestSet] = field(default_factory=list)
 
+    def append_test(self, group: str, filters: str = "", ignores: str = ""):
+        """テストセットを追加する。
+        group: テストグループ名
+        filters: 実行するべきテストケースの関数名に含まれる識別子（任意の文字列）。"|"区切り。省略した場合はフィルタリングしない
+        ignores: 無視するテストケースの関数名に含まれる識別子（任意の文字列）。"|"区切り。省略した場合は無視しない
+        """
+        test = TestSet(group=group, filters=[filters], ignores=[ignores])
+        self.tests.append(test)
+
 
 class Config:
+    """テストの設定。config.jsonに定義される内容"""
+
     def __init__(self, jsondict: dict) -> None:
         self.scenario = ""
         self.testsuites = list[TestSuite]()
         self.valid = True
+
+        self.__iteration = 0
 
         if "scenario" not in jsondict or "testsuites" not in jsondict:
             self.valid = False
@@ -61,6 +91,18 @@ class Config:
             print("config parse unknown error:")
             pprint(e)
             self.valid = False
+
+    def __iter__(self) -> Iterator[TestSuite]:
+        return self
+
+    def __next__(self) -> TestSuite | None:
+        if self.__iteration < len(self.testsuites):
+            result = self.testsuites[self.__iteration]
+            self.__iteration += 1
+            return result
+
+        self.__iteration = 0
+        return None
 
     def __parsetestsuites(self, testsuitesobj: list) -> None:
         for testsuiteobj in testsuitesobj:
@@ -116,68 +158,110 @@ class Config:
 
 @dataclass
 class TestCase:
-    testid: str
-    subject: str
-    module: str
+    """個々のテストケース
+    module: テストを実装したモジュールの相対パス
+    subject: テストケースについての説明。任意
+    testfunction: テストケースとして実行する関数名
+    ignore: このテストケースを無視するかどうか
+    """
 
-    @property
-    def modulepath(self) -> Path:
-        return Path(self.module).resolve()
+    module: str
+    subject: str
+    testfunction: str
+    ignore: bool
 
 
 @dataclass
 class TestResult:
-    testid: str
+    """テストケースの実行結果
+    module: テストを実装したモジュールの相対パス
+    testfunction: テストケースとして実行する関数名
+    succeeded: テストケースが成功したかどうか
+    runned_at: テストケースが実行された日時
+    """
+
+    module: str
+    testfunction: str
     succeeded: bool
     runned_at: datetime
 
 
 @dataclass
-class TestGroup:
-    groupname: str
+class TestModule:
+    """テストを実装したモジュール
+    testid: モジュール単位のテストID
+    subject: モジュールについての説明。任意
+    modulepath: モジュールの絶対パス
+    """
 
-    def __init__(self, name: str) -> None:
-        self.groupname = name
+    testid: str
+    subject: str
+    modulepath: str
+
+    def __init__(self, testid: str, subject: str, modulepath: str) -> None:
+        self.testid = testid
+        self.subject = subject
+        self.modulepath = modulepath
+
         self.__testcases: list[TestCase] = []
         self.__results: dict[str, TestResult] = {}
 
-    def add_test_case(self, testdd: str, subject: str, module: str) -> None:
-        testcase = TestCase(testid=testdd, subject=subject, module=module)
-        self.__testcases.append(testcase)
+        self.__iterindex = 0
 
-    def set_result(self, testid: str, succeeded: bool, runned_at: datetime) -> None:
-        succeeded = TestResult(testid=testid, succeeded=succeeded, runned_at=runned_at)
-        self.__results[testid] = succeeded
+        self.__testmodule = None
 
-    def get_result(self, testid: str) -> TestResult | None:
-        if testid in self.__results:
-            return self.__results[testid]
+    def load_module(self) -> None:
+        self.__testmodule = import_module(self.modulepath)
+
+    @property
+    def testmodule(self):
+        """ロードされたテストモジュールを返す"""
+        return self.__testmodule
+
+    def unload_module(self) -> None:
+        del self.__testmodule
+
+    def add_testcase(self, testfunction: str, subject: str, ignore: bool) -> None:
+        self.__testcases.append(
+            TestCase(
+                module=self.testid,
+                subject=subject,
+                testfunction=testfunction,
+                ignore=ignore,
+            )
+        )
+
+    def set_result(
+        self, testfunction: str, succeeded: bool, runned_at: datetime
+    ) -> None:
+        succeeded = TestResult(
+            module=self.testid,
+            testfunction=testfunction,
+            succeeded=succeeded,
+            runned_at=runned_at,
+        )
+        self.__results[self.__get_result_key(self.testid, testfunction)] = succeeded
+
+    @property
+    def modulepath(self) -> Path:
+        return Path(self.testid).resolve()
+
+    def get_result(self, testfunction: str) -> TestResult | None:
+        if self.__get_result_key(self.testid, testfunction) in self.__results:
+            return self.__results[self.__get_result_key(self.testid, testfunction)]
         else:
             return None
 
-    def __iter__(self) -> list[TestCase]:
-        return self
-
-    def __next__(self) -> TestCase | None:
-        if not self.__testcases:
-            return None
-        return self.__testcases.pop(0)
-
-    def __getitem__(self, index: int) -> TestCase | None:
-        if index < 0 or len(self.__testcases) <= index:
-            return None
-        return self.__testcases[index]
+    def __get_result_key(self, module: str, testfunction: str) -> str:
+        return testfunction + "@" + module
 
     @property
     def results(self) -> list[TestResult]:
         return self.__results.values()
 
     @property
-    def count(self) -> int:
-        return len(self.__testcases)
-
-    @property
     def resultcount(self) -> ResultCount:
+        """成功と失敗の数を返す"""
         success = 0
         fail = 0
         for result in self.__results.values():
@@ -187,9 +271,90 @@ class TestGroup:
                 fail += 1
         return ResultCount(succeeded=success, failed=fail)
 
+    def __iter__(self) -> Iterator[TestCase]:
+        """テストモジュールに含まれるテストケースのリスト"""
+        return self
+
+    def __next__(self) -> TestCase | None:
+        if self.__iterindex >= len(self.__testcases):
+            self.__iterindex = 0  # Reset for next iteration
+            return None
+        value = self.__testcases[self.__iterindex]
+        self.__iterindex += 1
+        return value
+
+    def __getitem__(self, index: int | str) -> TestCase | None:
+        if isinstance(index, int):
+            if index < 0 or len(self.__testcases) <= index:
+                return None
+            return self.__testcases[index]
+        else:
+            for testcase in self.__testcases:
+                if testcase.module == index:
+                    return testcase
+            return None
+
+    @property
+    def count(self) -> int:
+        return len(self.__testcases)
+
+
+@dataclass
+class TestGroup:
+    """意味的にまとまったテストケースのグループ。シナリオファイルの1つのシートに対応する
+    groupname: グループの名前
+    """
+
+    groupname: str
+
+    def __init__(self, name: str) -> None:
+        """グループの初期化
+        name: グループ名。シナリオファイルのシート名
+        """
+        self.groupname = name
+        self.__testmodules: list[TestModule] = []
+
+        self.__iterindex = 0
+
+    def add_test_module(self, testid: str, module: str, subject: str) -> None:
+        testmodule = TestModule(testid=testid, subject=subject, modulepath=module)
+        self.__testmodules.append(testmodule)
+
+    def __iter__(self) -> Iterator[TestModule]:
+        """グループにかかわらず全ての定義されたテストモジュールのリスト"""
+        return self
+
+    def __next__(self) -> TestModule | None:
+        if self.__iterindex >= len(self.__testmodules):
+            self.__iterindex = 0  # Reset for next iteration
+            return None
+        value = self.__testmodules[self.__iterindex]
+        self.__iterindex += 1
+        return value
+
+    def __getitem__(self, index: int | str) -> TestModule | None:
+        if isinstance(index, int):
+            if index < 0 or len(self.__testmodules) <= index:
+                return None
+            return self.__testmodules[index]
+        else:
+            for module in self.__testmodules:
+                if module.testid == index:
+                    return module
+            return None
+
+    @property
+    def count(self) -> int:
+        return len(self.__testmodules)
+
 
 class Scenario:
+    """テストシナリオの定義。シナリオファイルに対応する"""
+
     def __init__(self, scenariopath: Path) -> None:
+        """テストシナリオの初期化
+        scenariopath: シナリオファイルの絶対パス
+        """
         if not scenariopath.exists():
             print(f"[ERR]file not exists. {str(scenariopath)}")
             self.__valid = False
@@ -200,6 +365,8 @@ class Scenario:
         self.__groups: list[TestGroup] = []
         self.__groupsindex: dict[str, TestGroup] = {}
         self.__resultsindex: dict[str, TestResult | None] = {}
+
+        self.__iterindex = 0
 
         # ファイル読み込み
         sbook = None
@@ -233,13 +400,16 @@ class Scenario:
                 print("close scenario file.")
                 sbook.close()
 
-    def __iter__(self) -> list[TestGroup]:
+    def __iter__(self) -> Iterator[TestGroup]:
         return self
 
     def __next__(self) -> TestGroup | None:
-        if not self.__groups:
+        if self.__iterindex >= len(self.__groups):
+            self.__iterindex = 0  # Reset for next iteration
             return None
-        return self.__groups.pop(0)
+        value = self.__groups[self.__iterindex]
+        self.__iterindex += 1
+        return value
 
     def __getitem__(self, index: int) -> TestGroup | None:
         if index < 0 or len(self.__groups) <= index:
@@ -254,7 +424,11 @@ class Scenario:
     def count(self) -> int:
         return len(self.__groups)
 
-    def group(self, groupname: str) -> tuple[TestCase, TestResult | None]:
+    @property
+    def path(self) -> str:
+        return self.__scenario
+
+    def group(self, groupname: str) -> tuple[TestModule, TestResult | None]:
         if groupname not in self.__groupsindex:
             raise ValueError(f"[ERR]Unknown group name '{groupname}'.")
 
@@ -271,8 +445,8 @@ class Scenario:
         group = TestGroup(gsheet.title)
         row = 3
         while gsheet.cell(row, 2).value is not None and gsheet.cell(row, 2).value != "":
-            group.add_test_case(
-                testdd=gsheet.cell(row, 2).value,
+            group.add_test_module(
+                testid=gsheet.cell(row, 2).value,
                 subject=gsheet.cell(row, 3).value,
                 module=gsheet.cell(row, 4).value,
             )
