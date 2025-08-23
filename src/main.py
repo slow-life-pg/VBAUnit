@@ -29,17 +29,30 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
     2nd: -w 作業ディレクトリ (任意)
     3rd: -o 出力先フォルダ相対パス（任意）
     4th: -n テストスイート名（任意）
-    5th: -j テストスイートの説明（任意）
+    5th: -d テストスイートの説明（任意）
     6th: -f 実行フィルタ（任意）
-    7th: -i無視フィルタ（任意）
-    8th: -c 全部か最後に失敗したものだけか（任意）
+    7th: -i 無視フィルタ（任意）
+    8th: -s 全部か最後に失敗したものだけか（任意）
     """
     if not __isvalidargv(argv):
         print("Usage:")
         print(
-            "python main.py {testsuite path} [{working directory}][{output directory}][{test suite name}]"
-            "[{test suite description}][{execution filter}][{ignore filter}][{scope}]"
+            "python main.py {testsuite path} [-w {working directory}][-o {output directory}][-n {test suite name}]"
+            "[-d {test suite description}][-f {execution filter}][-i {ignore filter}][-s {scope}]"
         )
+        print()
+        print("testscenario path: absolute path for scenario file (required)")
+        print(
+            "working directory: relational path for output directory based on scenario folder (optional)"
+        )
+        print(
+            "output directory: relational path for output directory based on scenario folder (optional)"
+        )
+        print("test suite name: name for the test suite (optional)")
+        print("test suite description: subject for the test suite (optional)")
+        print("execution filter: filter for the tests to be executed (optional)")
+        print("ignore filter: filter for the tests to be ignored (optional)")
+        print("scope: all or lastfailed (optional)")
         print()
         sys.exit()
 
