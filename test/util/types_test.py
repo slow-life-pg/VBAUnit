@@ -1,7 +1,7 @@
 import pdb
 import gc
 from pathlib import Path
-from util.types import Config, TestScope, Scenario
+from util.types import Config, TestScope, TestScenario
 from configutil.util import (
     ScenarioElement,
     createscenariofile,
@@ -300,14 +300,14 @@ def test_scenario_nofile():
     testPath = Path("scenario.xlsx").resolve()
     if testPath.exists():
         testPath.unlink()
-    scenario = Scenario(testPath)
+    scenario = TestScenario(testPath)
     assert not scenario.valid
 
 
 def test_scenario_nocontent():
     # デフォルトのシートが勝手に作られるので実質"notestcase"と同じ
     scenariopath = createscenariofile([])
-    scenario = Scenario(scenariopath=scenariopath)
+    scenario = TestScenario(scenariopath=scenariopath)
     gc.collect()
 
     assert not scenario.valid
@@ -317,7 +317,7 @@ def test_scenario_nocontent():
 
 def test_scenario_notestcase():
     scenariopath = createscenariofile([("Group A", [])])
-    scenario = Scenario(scenariopath=scenariopath)
+    scenario = TestScenario(scenariopath=scenariopath)
     gc.collect()
 
     assert not scenario.valid
@@ -328,7 +328,7 @@ def test_scenario_notestcase():
 def test_scenario_singletestcase():
     element1 = ScenarioElement(id="ID1", subject="Testcase 1", module="test1.py")
     scenariopath = createscenariofile([("Group A", [element1])])
-    scenario = Scenario(scenariopath=scenariopath)
+    scenario = TestScenario(scenariopath=scenariopath)
     gc.collect()
 
     assert scenario.valid
@@ -347,7 +347,7 @@ def test_scenario_multitestcase():
     element2 = ScenarioElement(id="ID2", subject="Testcase 2", module="test2.py")
     element3 = ScenarioElement(id="ID3", subject="Testcase 3", module="test2.py")
     scenariopath = createscenariofile([("Group A", [element1, element2, element3])])
-    scenario = Scenario(scenariopath=scenariopath)
+    scenario = TestScenario(scenariopath=scenariopath)
     gc.collect()
 
     assert scenario.valid
@@ -374,7 +374,7 @@ def test_scenario_multigroup():
     scenariopath = createscenariofile(
         [("Group A", [element1]), ("Group B", [element2]), ("Group C", [element3])]
     )
-    scenario = Scenario(scenariopath=scenariopath)
+    scenario = TestScenario(scenariopath=scenariopath)
     gc.collect()
 
     assert scenario.valid

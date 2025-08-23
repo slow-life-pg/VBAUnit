@@ -1,26 +1,96 @@
 import sys
 import os
-import json
 from pathlib import Path
 from datetime import datetime
-from util.types import Config
+from util.types import TestScenario, TestSuite
 from runner.run import run_testsuite
 
 
-def analyzeargs(argv: list[str]) -> str:
-    if len(argv) == 1 or len(argv) > 3:
+def __isvalidargv(argv: list[str]) -> bool:
+    if len(argv) == 1:
+        # 引数が最低1つ必要
+        return False
+    if len(argv) % 2 == 0:
+        # 必ず奇数個
+        return False
+    return True
+
+
+def __getargvalue(argv: list[str], key: str) -> str | None:
+    if key in argv:
+        return argv[argv.index(key) + 1]
+    return None
+
+
+def initenv(argv: list[str]) -> dict[str, str | Path]:
+    """コマンドライン引数の解析と環境設定
+    引数の順序
+    1st: テストシナリオ絶対パス (必須)
+    2nd: -w 作業ディレクトリ (任意)
+    3rd: -o 出力先フォルダ相対パス（任意）
+    4th: -n テストスイート名（任意）
+    5th: -j テストスイートの説明（任意）
+    6th: -f 実行フィルタ（任意）
+    7th: -i無視フィルタ（任意）
+    8th: -c 全部か最後に失敗したものだけか（任意）
+    """
+    if not __isvalidargv(argv):
         print("Usage:")
-        print("python main.py {testsuite name} [{working directory}]")
+        print(
+            "python main.py {testsuite path} [{working directory}][{output directory}][{test suite name}]"
+            "[{test suite description}][{execution filter}][{ignore filter}][{scope}]"
+        )
         print()
         sys.exit()
 
-    if len(argv) > 2:
-        # 引数があればカレントディレクトリに設定
-        argpath = Path(argv[2])
-        if argpath.exists():
-            changecurdir(argpath)
+    argstack = argv.copy()
 
-    return argv[1]
+    scenariopath = Path(argv[1]).resolve()
+    programdir = Path(__file__).parent.resolve()
+
+    args: dict[str, str | Path] = {
+        "scenario": scenariopath,
+        "work": programdir,
+        "out": scenariopath.parent.joinpath("results"),
+        "name": f"VBAUnit {datetime.now():%Y%m%d%H%M%S}",
+        "subject": f"VBAUnit Test {scenariopath.name}",
+        "filters": "",
+        "ignores": "",
+        "scope": "all",
+    }
+
+    workdir = __getargvalue(argstack, "-w")
+    if workdir is not None:
+        args["work"] = Path(workdir).resolve()
+        changecurdir(Path(workdir).resolve())
+
+    outdir = __getargvalue(argstack, "-o")
+    if outdir is not None:
+        args["out"] = Path(outdir).resolve()
+
+    name = __getargvalue(argstack, "-n")
+    if name is not None:
+        args["name"] = name
+
+    subject = __getargvalue(argstack, "-j")
+    if subject is not None:
+        subject = subject.strip('"')  # ダブルクオートを外す
+        args["subject"] = subject
+
+    filters = __getargvalue(argstack, "-f")
+    if filters is not None:
+        args["filters"] = filters
+
+    ignores = __getargvalue(argstack, "-i")
+    if ignores is not None:
+        args["ignores"] = ignores
+
+    scope = __getargvalue(argstack, "-c")
+    if scope is not None:
+        if scope == "all" or scope == "lastfailed":
+            args["scope"] = scope
+
+    return args
 
 
 def printstartmessage(currentdir: Path, tooldir: Path) -> None:
@@ -36,27 +106,10 @@ def changecurdir(newdir: Path) -> None:
     os.chdir(rundir)
 
 
-def getconfigpath(currentdir: Path, tooldir: Path) -> Path:
-    configpath = currentdir.joinpath("config.json")
-    if not configpath.exists():
-        print("[warn] config get from tool directory")
-        configpath = tooldir.joinpath("config.json")
-
-    return configpath
-
-
-def getconfig(configpath: Path) -> Config:
-    with open(str(configpath), encoding="utf-8") as fc:
-        jsondict = json.load(fc)
-
-    testconfig = Config(jsondict=jsondict)
-    return testconfig
-
-
 def getscenariopath(scenario: str) -> Path:
     scenariopath = Path(scenario)
     if scenariopath.is_absolute():
-        print("absolute scenario path")
+        print(f"absolute scenario path {scenariopath}")
     else:
         print(f"relative scenario path based on {Path.cwd()}")
         scenariopath = scenariopath.resolve()
@@ -70,38 +123,44 @@ def getbridgepath(tooldir: Path) -> Path:
 
 
 if __name__ == "__main__":
-    testsuite = analyzeargs(sys.argv)
+    testconfig = initenv(sys.argv)
 
-    # Config取得
+    # 開始メッセージ
 
     currentdir = Path.cwd()
     tooldir = Path(__file__).parent
     printstartmessage(currentdir=currentdir, tooldir=tooldir)
 
-    cocnfigpath = getconfigpath(currentdir=currentdir, tooldir=tooldir)
-    if not cocnfigpath.exists():
-        print("config.json not exists")
-        sys.exit()
-
-    config = getconfig(configpath=cocnfigpath)
-    print(f"start with: {config.scenario}")
-
     # テストパス設定
 
-    scenariopath = getscenariopath(config.scenario)
-    if not scenariopath.exists():
+    if not Path(testconfig["scenario"]).exists():
         print("scenario not exists")
         sys.exit()
 
     bridgepath = getbridgepath(tooldir=tooldir)
 
-    print(f"using: {bridgepath}")
+    print(f"using bridge: {bridgepath}")
 
     sys.path.append(str(tooldir))  # テストコードの方でvbaunit_libが使えるようになる
+
+    changecurdir(Path(testconfig["work"]))
+
+    # テストスイート
+
+    scenario = TestScenario(Path(testconfig["scenario"]))
+
+    testsuite = TestSuite(
+        name=str(testconfig["name"]),
+        subject=str(testconfig["subject"]),
+        scenario=scenario,
+        filters=str(testconfig["filters"]),
+        ignores=str(testconfig["ignores"]),
+        scope=str(testconfig["scope"]),
+    )
 
     # テスト実行
 
     print()
     print("run test!")
 
-    run_testsuite(config=config)
+    run_testsuite(testsuite, Path(testconfig["out"]))
