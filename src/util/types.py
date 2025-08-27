@@ -1,8 +1,9 @@
+from __future__ import annotations  # 無くていいはずなんだが python 3.12.8
 from pathlib import Path
 from importlib import import_module
 from datetime import datetime
 from collections import namedtuple
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Iterator
 from pprint import pprint
 from openpyxl import load_workbook
@@ -17,14 +18,16 @@ GroupSet = namedtuple("GroupSet", ["spec", "result"])
 class TestCase:
     """個々のテストケース
     testid: テストモジュールの識別ID
-    module: テストを実装したモジュールの相対パス
+    group: テストグループの名称
+    module: テストを実装したモジュール
     subject: テストケースについての説明。任意
     testfunction: テストケースとして実行する関数名
     ignore: このテストケースを無視するかどうか
     """
 
     testid: str
-    module: str
+    group: str
+    module: TestModule
     subject: str
     testfunction: str
     ignore: bool
@@ -34,6 +37,7 @@ class TestCase:
 class TestResult:
     """テストケースの実行結果
     testid: テストモジュールの識別ID
+    group: テストグループの名称
     module: テストを実装したモジュールの相対パス
     testfunction: テストケースとして実行する関数名
     succeeded: テストケースが成功したかどうか
@@ -41,32 +45,35 @@ class TestResult:
     """
 
     testid: str
+    group: str
     module: str
     testfunction: str
     succeeded: bool
-    runned_at: datetime
+    runned_at: str
 
 
 @dataclass
 class TestModule:
     """テストを実装したモジュール"""
 
-    def __init__(self, testid: str, subject: str, modulepath: str, run: bool) -> None:
+    def __init__(
+        self, testid: str, subject: str, group: str, modulepath: str, run: bool
+    ) -> None:
         """テストモジュールを作成する。
         testid: テストモジュールの識別ID
         subject: テストモジュールの説明
+        group: テストグループの名称
         modulepath: テストモジュールのパス
         run: テストモジュールを実行するかどうか
         """
         self.__testid = testid
         self.__subject = subject
+        self.__group = group
         self.__modulepath = modulepath
         self.__run = run
 
         self.__testcases: list[TestCase] = []
         self.__results: dict[str, TestResult] = {}
-
-        self.__iterindex = 0
 
         self.__testmodule = None
 
@@ -101,6 +108,7 @@ class TestModule:
         self.__testcases.append(
             TestCase(
                 testid=self.__testid,
+                group=self.__group,
                 module=self.__modulepath,
                 subject=subject,
                 testfunction=testfunction,
@@ -113,6 +121,7 @@ class TestModule:
     ) -> None:
         succeeded = TestResult(
             testid=self.__testid,
+            group=self.__group,
             module=self.__modulepath,
             testfunction=testfunction,
             succeeded=succeeded,
@@ -147,15 +156,7 @@ class TestModule:
 
     def __iter__(self) -> Iterator[TestCase]:
         """テストモジュールに含まれるテストケースのリスト"""
-        return self
-
-    def __next__(self) -> TestCase | None:
-        if self.__iterindex >= len(self.__testcases):
-            self.__iterindex = 0  # Reset for next iteration
-            return None
-        value = self.__testcases[self.__iterindex]
-        self.__iterindex += 1
-        return value
+        return iter(self.__testcases)
 
     def __getitem__(self, index: int | str) -> TestCase | None:
         if isinstance(index, int):
@@ -184,8 +185,6 @@ class TestGroup:
         self.__groupname = name
         self.__testmodules: list[TestModule] = []
 
-        self.__iterindex = 0
-
     @property
     def groupname(self) -> str:
         return self.__groupname
@@ -194,21 +193,17 @@ class TestGroup:
         self, testid: str, module: str, subject: str, run: bool
     ) -> None:
         testmodule = TestModule(
-            testid=testid, subject=subject, modulepath=module, run=run
+            testid=testid,
+            subject=subject,
+            group=self.__groupname,
+            modulepath=module,
+            run=run,
         )
         self.__testmodules.append(testmodule)
 
     def __iter__(self) -> Iterator[TestModule]:
         """グループにかかわらず全ての定義されたテストモジュールのリスト"""
-        return self
-
-    def __next__(self) -> TestModule | None:
-        if self.__iterindex >= len(self.__testmodules):
-            self.__iterindex = 0  # Reset for next iteration
-            return None
-        value = self.__testmodules[self.__iterindex]
-        self.__iterindex += 1
-        return value
+        return iter(self.__testmodules)
 
     def __getitem__(self, index: int | str) -> TestModule | None:
         if isinstance(index, int):
@@ -239,12 +234,10 @@ class TestScenario:
             return
 
         self.__valid = True
-        self.__scenario = str(scenariopath)
+        self.__scenario = scenariopath
         self.__groups: list[TestGroup] = []
         self.__groupsindex: dict[str, TestGroup] = {}
         self.__resultsindex: dict[str, TestResult | None] = {}
-
-        self.__iterindex = 0
 
         # ファイル読み込み
         sbook = None
@@ -274,20 +267,12 @@ class TestScenario:
             pprint(e)
             self.__valid = False
         finally:
-            if sbook is not None:
+            if sbook:
                 print("close scenario file.")
                 sbook.close()
 
     def __iter__(self) -> Iterator[TestGroup]:
-        return self
-
-    def __next__(self) -> TestGroup | None:
-        if self.__iterindex >= len(self.__groups):
-            self.__iterindex = 0  # Reset for next iteration
-            return None
-        value = self.__groups[self.__iterindex]
-        self.__iterindex += 1
-        return value
+        return iter(self.__groups)
 
     def __getitem__(self, index: int) -> TestGroup | None:
         if index < 0 or len(self.__groups) <= index:
@@ -303,7 +288,7 @@ class TestScenario:
         return len(self.__groups)
 
     @property
-    def path(self) -> str:
+    def path(self) -> Path:
         return self.__scenario
 
     def group(self, groupname: str) -> tuple[TestModule, TestResult | None]:
@@ -352,10 +337,6 @@ class TestSuite:
     tests: 実行するテストセットのリスト
     """
 
-    name: str
-    subject: str
-    tests: list[TestCase] = field(default_factory=list)
-
     def __init__(
         self,
         name: str,
@@ -378,17 +359,21 @@ class TestSuite:
         self.__filters = [f.strip() for f in filters.split("|")]
         self.__ignores = [i.strip() for i in ignores.split("|")]
         self.__scope = scope
+        self.__tests = list[TestCase]()
+        self.__testset = dict[str, list[TestCase]]()
         for group in scenario:
             for module in group:
                 if not module.run:
                     continue
+                self.__testset[module.testid] = list[TestCase]()
                 for testcase in module:
                     if self.__torun(
                         testcase=testcase,
                         filters=self.__filters,
                         ignores=self.__ignores,
                     ):
-                        self.tests.append(testcase)
+                        self.__tests.append(testcase)
+                        self.__testset[module.testid].append(testcase)
 
     @property
     def name(self) -> str:
@@ -425,3 +410,16 @@ class TestSuite:
             if f in testname:
                 return True
         return False
+
+    def __iter__(self) -> Iterator[TestCase]:
+        return iter(self.__tests)
+
+    def __getitem__(self, index: int | str) -> TestCase | None:
+        if isinstance(index, str):
+            if index in self.__testset:
+                return self.__testset[index]
+            return None
+        else:
+            if index < 0 or len(self.__tests) <= index:
+                return None
+            return self.__tests[index]

@@ -18,7 +18,11 @@ def __isvalidargv(argv: list[str]) -> bool:
 
 def __getargvalue(argv: list[str], key: str) -> str | None:
     if key in argv:
-        return argv[argv.index(key) + 1]
+        keyindex = argv.index(key)
+        value = argv[keyindex + 1]
+        del argv[keyindex]  # keyを削除
+        del argv[keyindex]  # valueを削除
+        return value
     return None
 
 
@@ -72,36 +76,40 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         "scope": "all",
     }
 
-    workdir = __getargvalue(argstack, "-w")
-    if workdir is not None:
-        args["work"] = Path(workdir).resolve()
-        changecurdir(Path(workdir).resolve())
+    try:
+        workdir = __getargvalue(argstack, "-w")
+        if workdir is not None:
+            args["work"] = Path(workdir).resolve()
+            changecurdir(Path(workdir).resolve())
 
-    outdir = __getargvalue(argstack, "-o")
-    if outdir is not None:
-        args["out"] = Path(outdir).resolve()
+        outdir = __getargvalue(argstack, "-o")
+        if outdir is not None:
+            args["out"] = Path(outdir).resolve()
 
-    name = __getargvalue(argstack, "-n")
-    if name is not None:
-        args["name"] = name
+        name = __getargvalue(argstack, "-n")
+        if name is not None:
+            args["name"] = name
 
-    subject = __getargvalue(argstack, "-j")
-    if subject is not None:
-        subject = subject.strip('"')  # ダブルクオートを外す
-        args["subject"] = subject
+        subject = __getargvalue(argstack, "-j")
+        if subject is not None:
+            subject = subject.strip('"')  # ダブルクオートを外す
+            args["subject"] = subject
 
-    filters = __getargvalue(argstack, "-f")
-    if filters is not None:
-        args["filters"] = filters
+        filters = __getargvalue(argstack, "-f")
+        if filters is not None:
+            args["filters"] = filters
 
-    ignores = __getargvalue(argstack, "-i")
-    if ignores is not None:
-        args["ignores"] = ignores
+        ignores = __getargvalue(argstack, "-i")
+        if ignores is not None:
+            args["ignores"] = ignores
 
-    scope = __getargvalue(argstack, "-c")
-    if scope is not None:
-        if scope == "all" or scope == "lastfailed":
-            args["scope"] = scope
+        scope = __getargvalue(argstack, "-c")
+        if scope is not None:
+            if scope == "all" or scope == "lastfailed":
+                args["scope"] = scope
+    except IndexError as e:
+        print(f"[ERR]Invalid argument format: {e}")
+        # とりあえず継続する
 
     return args
 
@@ -176,4 +184,6 @@ if __name__ == "__main__":
     print()
     print("run test!")
 
-    run_testsuite(testsuite, Path(testconfig["out"]))
+    run_testsuite(
+        testsuite, Path(testconfig["scenario"]), bridgepath, Path(testconfig["out"])
+    )
