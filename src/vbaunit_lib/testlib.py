@@ -59,12 +59,19 @@ class VBAUnitTestLib:
         """bridgeから取得したオブジェクトを解放"""
         pass
 
-    def callmacro(self, obj: object, macro_name: str, *args) -> None:
+    def callmacro(self, obj: object, macro_name: str, *args) -> object:
         """bridgeからマクロを呼び出す"""
         if self.__book:
             if len(args) <= 16:
                 vbamacro = self.__book.macro(macro_name)
-                res = vbamacro(*args)
+                res: list[object] = vbamacro(*args)
+                return res[0] if res else None
+            else:
+                print(f"callmacro: too many macro arguments {len(args)}")
+                return None
+        else:
+            print("callmacro: no book has opened")
+            return None
 
 
 def gettestlib(withapp: bool = False) -> VBAUnitTestLib:
