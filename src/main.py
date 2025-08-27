@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from util.types import TestScenario, TestSuite
 from runner.run import run_testsuite
+from vbaunit_lib.testlib import setbridgepath
 
 
 def __isvalidargv(argv: list[str]) -> bool:
@@ -159,6 +160,7 @@ if __name__ == "__main__":
         sys.exit()
 
     bridgepath = getbridgepath(tooldir=tooldir)
+    setbridgepath(bridgepath)
 
     print(f"using bridge: {bridgepath}")
 

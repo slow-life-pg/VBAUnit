@@ -22,7 +22,7 @@ def __createresult(testcase: TestCase, succeeded: bool) -> TestResult:
     return result
 
 
-def __runtestcase(testcase: TestCase, bridge: Path) -> TestResult:
+def __runtestcase(testcase: TestCase) -> TestResult:
     return __createresult(testcase=testcase, succeeded=False)
 
 
