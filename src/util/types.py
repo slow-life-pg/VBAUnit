@@ -56,6 +56,8 @@ class TestResult:
 class TestModule:
     """テストを実装したモジュール"""
 
+    testid: str
+
     def __init__(
         self, testid: str, subject: str, group: str, modulepath: str, run: bool
     ) -> None:
@@ -66,7 +68,7 @@ class TestModule:
         modulepath: テストモジュールのパス
         run: テストモジュールを実行するかどうか
         """
-        self.__testid = testid
+        self.testid = testid
         self.__subject = subject
         self.__group = group
         self.__modulepath = modulepath
@@ -86,10 +88,6 @@ class TestModule:
         return self.__testmodule
 
     @property
-    def testid(self):
-        return self.__testid
-
-    @property
     def subject(self):
         return self.__subject
 
@@ -107,7 +105,7 @@ class TestModule:
     def add_testcase(self, testfunction: str, subject: str, ignore: bool) -> None:
         self.__testcases.append(
             TestCase(
-                testid=self.__testid,
+                testid=self.testid,
                 group=self.__group,
                 module=self.__modulepath,
                 subject=subject,
@@ -120,18 +118,18 @@ class TestModule:
         self, testfunction: str, succeeded: bool, runned_at: datetime
     ) -> None:
         succeeded = TestResult(
-            testid=self.__testid,
+            testid=self.testid,
             group=self.__group,
             module=self.__modulepath,
             testfunction=testfunction,
             succeeded=succeeded,
             runned_at=runned_at,
         )
-        self.__results[self.__get_result_key(self.__testid, testfunction)] = succeeded
+        self.__results[self.__get_result_key(self.testid, testfunction)] = succeeded
 
     def get_result(self, testfunction: str) -> TestResult | None:
-        if self.__get_result_key(self.__testid, testfunction) in self.__results:
-            return self.__results[self.__get_result_key(self.__testid, testfunction)]
+        if self.__get_result_key(self.testid, testfunction) in self.__results:
+            return self.__results[self.__get_result_key(self.testid, testfunction)]
         else:
             return None
 
@@ -176,18 +174,18 @@ class TestModule:
 
 @dataclass
 class TestGroup:
-    """意味的にまとまったテストケースのグループ。シナリオファイルの1つのシートに対応する"""
+    """意味的にまとまったテストケースのグループ。シナリオファイルの1つのシートに対応する
+    groupname: グループ名
+    """
+
+    grouopname: str
 
     def __init__(self, name: str) -> None:
         """グループの初期化
         name: グループ名。シナリオファイルのシート名
         """
-        self.__groupname = name
+        self.groupname = name
         self.__testmodules: list[TestModule] = []
-
-    @property
-    def groupname(self) -> str:
-        return self.__groupname
 
     def add_test_module(
         self, testid: str, module: str, subject: str, run: bool
@@ -195,7 +193,7 @@ class TestGroup:
         testmodule = TestModule(
             testid=testid,
             subject=subject,
-            group=self.__groupname,
+            group=self.groupname,
             modulepath=module,
             run=run,
         )
