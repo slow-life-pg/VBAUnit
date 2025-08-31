@@ -2,8 +2,8 @@ from pathlib import Path
 import shutil
 import json
 from datetime import datetime
-from util.types import TestSuite, TestCase, TestResult
 from openpyxl import load_workbook
+from util.types import TestSuite, TestCase, TestResult
 
 
 def __gettimestampnow() -> str:
@@ -50,7 +50,7 @@ def run_testsuite(suite: TestSuite, scenario: Path, bridge: Path, out: Path) -> 
         print(json.dumps(config))
 
         try:
-            result = __runtestcase(testcase=testcase, bridge=bridge)
+            result = __runtestcase(testcase=testcase)
         except Exception as e:
             print(f"Runtime error: {e}")
             result = __createresult(testcase=testcase, succeeded=False)
