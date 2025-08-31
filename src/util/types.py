@@ -1,9 +1,10 @@
 from __future__ import annotations  # 無くていいはずなんだが python 3.12.8
+from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
-from importlib import import_module
 from datetime import datetime
 from collections import namedtuple
 from dataclasses import dataclass
+import sys
 from typing import Iterator
 from pprint import pprint
 from openpyxl import load_workbook
@@ -75,12 +76,19 @@ class TestModule:
         self.__run = run
 
         self.__testcases: list[TestCase] = []
+        self.__testfunctions: list[str] = []
         self.__results: dict[str, TestResult] = {}
 
         self.__testmodule = None
+        self.__testmodulekey = "testee"
 
-    def load_module(self) -> None:
-        self.__testmodule = import_module(self.modulepath)
+    def load_module(self, key=datetime.now()) -> None:
+        spec = spec_from_file_location("testee", str(self.modulepath))
+        mod = module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        self.__testmodule = mod
+        self.__testmodulekey = "testee" + str(key)
+        sys.modules[self.__testmodulekey] = mod
 
     @property
     def testmodule(self):
@@ -100,32 +108,42 @@ class TestModule:
         return self.__run
 
     def unload_module(self) -> None:
-        del self.__testmodule
+        if self.__testmodule:
+            del self.__testmodule
+            self.__testmodule = None
+        if self.__testmodulekey in sys.modules:
+            del sys.modules[self.__testmodulekey]
+        self.__testmodulekey = "testee"
 
-    def add_testcase(self, testfunction: str, subject: str, ignore: bool) -> None:
-        self.__testcases.append(
-            TestCase(
-                testid=self.testid,
-                group=self.__group,
-                module=self.__modulepath,
-                subject=subject,
-                testfunction=testfunction,
-                ignore=ignore,
-            )
-        )
-
-    def set_result(
-        self, testfunction: str, succeeded: bool, runned_at: datetime
-    ) -> None:
-        succeeded = TestResult(
+    def add_testcase(self, testfunction: str, subject: str, ignore: bool) -> TestCase:
+        tc = TestCase(
             testid=self.testid,
             group=self.__group,
             module=self.__modulepath,
+            subject=subject,
             testfunction=testfunction,
-            succeeded=succeeded,
-            runned_at=runned_at,
+            ignore=ignore,
         )
-        self.__results[self.__get_result_key(self.testid, testfunction)] = succeeded
+        self.__testcases.append(tc)
+        self.__testfunctions.append(testfunction)
+        return tc
+
+    def set_result(
+        self, testfunction: str, succeeded: bool, runned_at: datetime
+    ) -> TestResult | None:
+        if testfunction in self.__testfunctions:
+            succeeded = TestResult(
+                testid=self.testid,
+                group=self.__group,
+                module=self.__modulepath,
+                testfunction=testfunction,
+                succeeded=succeeded,
+                runned_at=runned_at,
+            )
+            self.__results[self.__get_result_key(self.testid, testfunction)] = succeeded
+            return succeeded
+        else:
+            return None
 
     def get_result(self, testfunction: str) -> TestResult | None:
         if self.__get_result_key(self.testid, testfunction) in self.__results:
@@ -138,7 +156,8 @@ class TestModule:
 
     @property
     def results(self) -> list[TestResult]:
-        return self.__results.values()
+        sortedresults = [self.__results[k] for k in sorted(self.__results)]
+        return sortedresults
 
     @property
     def resultcount(self) -> ResultCount:
@@ -189,7 +208,7 @@ class TestGroup:
 
     def add_test_module(
         self, testid: str, module: str, subject: str, run: bool
-    ) -> None:
+    ) -> TestModule:
         testmodule = TestModule(
             testid=testid,
             subject=subject,
@@ -198,6 +217,7 @@ class TestGroup:
             run=run,
         )
         self.__testmodules.append(testmodule)
+        return testmodule
 
     def __iter__(self) -> Iterator[TestModule]:
         """グループにかかわらず全ての定義されたテストモジュールのリスト"""
