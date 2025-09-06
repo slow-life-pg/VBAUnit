@@ -1,4 +1,5 @@
 from __future__ import annotations  # 無くていいはずなんだが python 3.12.8
+from enum import Enum
 from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
 from datetime import datetime
@@ -12,7 +13,11 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 
 ResultCount = namedtuple("ResultCount", ["succeeded", "failed"])
-GroupSet = namedtuple("GroupSet", ["spec", "result"])
+
+
+class TestScope(Enum):
+    ALL = "all"  # all testcases
+    LAST_FAILED = "last failed"  # only failed testcases in last run
 
 
 @dataclass
@@ -197,7 +202,7 @@ class TestGroup:
     groupname: グループ名
     """
 
-    grouopname: str
+    groupname: str
 
     def __init__(self, name: str) -> None:
         """グループの初期化
@@ -255,7 +260,6 @@ class TestScenario:
         self.__scenario = scenariopath
         self.__groups: list[TestGroup] = []
         self.__groupsindex: dict[str, TestGroup] = {}
-        self.__resultsindex: dict[str, TestResult | None] = {}
 
         # ファイル読み込み
         sbook = None
@@ -270,7 +274,6 @@ class TestScenario:
                     continue
                 self.__groups.append(group)
                 self.__groupsindex[group.groupname] = group
-                self.__resultsindex[group.groupname] = None
 
             if len(self.__groups) == 0:
                 print(f"[ERR]No test found in '{self.__scenario}'.")
@@ -309,24 +312,22 @@ class TestScenario:
     def path(self) -> Path:
         return self.__scenario
 
-    def group(self, groupname: str) -> tuple[TestModule, TestResult | None]:
+    def group(self, groupname: str) -> TestGroup:
         if groupname not in self.__groupsindex:
             raise ValueError(f"[ERR]Unknown group name '{groupname}'.")
 
-        return GroupSet(
-            spec=self.__groupsindex[groupname], result=self.__resultsindex[groupname]
-        )
+        return self.__groupsindex[groupname]
 
     def __analyzegroup(self, gsheet: Worksheet) -> TestGroup | None:
         if gsheet.cell(2, 2).value != "テストID":
             return None
-        if gsheet.cell(3, 2).value is None or gsheet.cell(3, 2).value != "説明":
+        if gsheet.cell(2, 3).value is None or gsheet.cell(2, 3).value != "説明":
             return None
-        if gsheet.cell(4, 2).value is None or gsheet.cell(4, 2).value != "モジュール":
+        if gsheet.cell(2, 4).value is None or gsheet.cell(2, 4).value != "モジュール":
             return None
-        if gsheet.cell(5, 2).value is None or gsheet.cell(5, 2).value != "実行":
+        if gsheet.cell(2, 5).value is None or gsheet.cell(2, 5).value != "実行":
             return None
-        if gsheet.cell(6, 2).value is None or gsheet.cell(6, 2).value != "結果":
+        if gsheet.cell(2, 6).value is None or gsheet.cell(2, 6).value != "結果":
             return None
 
         group = TestGroup(gsheet.title)
@@ -362,7 +363,7 @@ class TestSuite:
         scenario: TestScenario,
         filters: str = "",
         ignores: str = "",
-        scope: str = "all",
+        scope: TestScope = TestScope.ALL,
     ):
         """テストセットを作成する。
         name: テストスイートを識別する名称（この名前でログを出力する）
@@ -374,8 +375,8 @@ class TestSuite:
         """
         self.__name = name
         self.__subject = subject
-        self.__filters = [f.strip() for f in filters.split("|")]
-        self.__ignores = [i.strip() for i in ignores.split("|")]
+        self.__filters = self.__skipemptycondition(filters)
+        self.__ignores = self.__skipemptycondition(ignores)
         self.__scope = scope
         self.__tests = list[TestCase]()
         self.__testset = dict[str, list[TestCase]]()
@@ -403,11 +404,23 @@ class TestSuite:
 
     @property
     def allscope(self) -> bool:
-        return self.__scope == "all"
+        return self.__scope == TestScope.ALL
 
     @property
     def lastfailedscope(self) -> bool:
-        return self.__scope == "lastfailed"
+        return self.__scope == TestScope.LAST_FAILED
+
+    @property
+    def count(self) -> int:
+        return len(self.__tests)
+
+    def __skipemptycondition(self, conditions: str) -> list[str]:
+        splitted = [f.strip() for f in conditions.split("|")]
+        taken = list[str]()
+        for c in splitted:
+            if len(c) > 0:
+                taken.append(c)
+        return taken
 
     def __torun(
         self, testcase: TestCase, filters: list[str], ignores: list[str]
@@ -432,12 +445,14 @@ class TestSuite:
     def __iter__(self) -> Iterator[TestCase]:
         return iter(self.__tests)
 
-    def __getitem__(self, index: int | str) -> TestCase | None:
+    def __getitem__(self, index: int | str) -> list[TestCase] | None:
         if isinstance(index, str):
+            # testidからテストケースのリストを取出す
             if index in self.__testset:
                 return self.__testset[index]
             return None
         else:
+            # indexの位置のテストケース単体を含むリストを返す
             if index < 0 or len(self.__tests) <= index:
                 return None
-            return self.__tests[index]
+            return [self.__tests[index]]

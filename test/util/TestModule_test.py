@@ -43,10 +43,19 @@ def test_result_none_initial_state():
     assert tr is None
 
 
-def test_result_none_doesnt_match():
+def test_result_none_doesnt_match_when_set():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True)
     m.add_testcase("f", "s", False)
     tr = m.set_result("ff", True, None)
+    assert tr is None
+
+
+def test_result_none_doesnt_match_when_get():
+    m = TestModule("testidA", "subjectA", "groupA", "moduleA", True)
+    m.add_testcase("f", "s", False)
+    tr = m.set_result("f", True, None)
+    assert tr is not None
+    tr = m.get_result("ff")
     assert tr is None
 
 
