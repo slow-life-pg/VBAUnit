@@ -1,5 +1,6 @@
 from __future__ import annotations  # 無くていいはずなんだが python 3.12.8
 from enum import Enum
+import inspect
 from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
 from datetime import datetime
@@ -26,16 +27,16 @@ class TestCase:
     testid: テストモジュールの識別ID
     group: テストグループの名称
     module: テストを実装したモジュール
-    subject: テストケースについての説明。任意
     testfunction: テストケースとして実行する関数名
+    subject: テストケースについての説明。任意
     ignore: このテストケースを無視するかどうか
     """
 
     testid: str
     group: str
     module: TestModule
-    subject: str
     testfunction: str
+    subject: str
     ignore: bool
 
 
@@ -58,7 +59,6 @@ class TestResult:
     runned_at: str
 
 
-@dataclass
 class TestModule:
     """テストを実装したモジュール"""
 
@@ -88,6 +88,10 @@ class TestModule:
         self.__testmodulekey = "testee"
 
     def load_module(self, key=datetime.now()) -> None:
+        if self.__testmodulekey != "testee":
+            self.unload_module()
+        if not Path(self.modulepath).exists():
+            return  # ロード失敗時はスキップ
         spec = spec_from_file_location("testee", str(self.modulepath))
         mod = module_from_spec(spec)
         spec.loader.exec_module(mod)
@@ -99,6 +103,10 @@ class TestModule:
     def testmodule(self):
         """ロードされたテストモジュールを返す"""
         return self.__testmodule
+
+    @property
+    def group(self) -> str:
+        return self.__group
 
     @property
     def subject(self):
@@ -125,13 +133,29 @@ class TestModule:
             testid=self.testid,
             group=self.__group,
             module=self.__modulepath,
-            subject=subject,
             testfunction=testfunction,
+            subject=subject,
             ignore=ignore,
         )
         self.__testcases.append(tc)
         self.__testfunctions.append(testfunction)
         return tc
+
+    def pick_testcases(self) -> None:
+        """テストモジュール内の全てのテストケースを列挙する"""
+        self.load_module()
+        testfunctions = [
+            (name, f)
+            for name, f in inspect.getmembers(self.__testmodule, inspect.isfunction)
+            if name.startswith("test_")
+        ]
+        for name, f in testfunctions:
+            self.add_testcase(
+                testfunction=name,
+                subject=getattr(f, "_subject", ""),
+                ignore=getattr(f, "_is_ignored", False),
+            )
+        self.unload_module()
 
     def set_result(
         self, testfunction: str, succeeded: bool, runned_at: datetime
@@ -187,7 +211,7 @@ class TestModule:
             return self.__testcases[index]
         else:
             for testcase in self.__testcases:
-                if testcase.module == index:
+                if testcase.testfunction == index:
                     return testcase
             return None
 
@@ -196,7 +220,6 @@ class TestModule:
         return len(self.__testcases)
 
 
-@dataclass
 class TestGroup:
     """意味的にまとまったテストケースのグループ。シナリオファイルの1つのシートに対応する
     groupname: グループ名
@@ -375,8 +398,8 @@ class TestSuite:
         """
         self.__name = name
         self.__subject = subject
-        self.__filters = self.__skipemptycondition(filters)
-        self.__ignores = self.__skipemptycondition(ignores)
+        self.__filters = self.__getconditionlist(filters)
+        self.__ignores = self.__getconditionlist(ignores)
         self.__scope = scope
         self.__tests = list[TestCase]()
         self.__testset = dict[str, list[TestCase]]()
@@ -385,6 +408,7 @@ class TestSuite:
                 if not module.run:
                     continue
                 self.__testset[module.testid] = list[TestCase]()
+                module.pick_testcases()
                 for testcase in module:
                     if self.__torun(
                         testcase=testcase,
@@ -414,13 +438,8 @@ class TestSuite:
     def count(self) -> int:
         return len(self.__tests)
 
-    def __skipemptycondition(self, conditions: str) -> list[str]:
-        splitted = [f.strip() for f in conditions.split("|")]
-        taken = list[str]()
-        for c in splitted:
-            if len(c) > 0:
-                taken.append(c)
-        return taken
+    def __getconditionlist(self, conditions: str) -> list[str]:
+        return [f.strip() for f in conditions.split("|") if len(f.strip()) > 0]
 
     def __torun(
         self, testcase: TestCase, filters: list[str], ignores: list[str]

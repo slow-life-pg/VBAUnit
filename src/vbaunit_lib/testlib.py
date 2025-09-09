@@ -1,7 +1,33 @@
+from functools import wraps
 from pathlib import Path
 import xlwings as xl
 
 __bridgepath = Path(__file__).parent
+
+
+def description(subject: str):
+    """テストケースの説明を付与するデコレーター。"""
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        wrapper._subject = subject  # type: ignore
+        return wrapper
+
+    return decorator
+
+
+def ignore(func):
+    """無視したいテストケースを識別するデコレーター。"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    wrapper._is_ignored = True  # type: ignore
+    return wrapper
 
 
 def setbridgepath(bridgepath: Path) -> None:

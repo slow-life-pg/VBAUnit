@@ -77,7 +77,7 @@ def test_scenario_multigroup_multimodule_basicproperty():
     gindex = 0
     for g in s:
         mindex = 0
-        for m in g:
+        for _ in g:
             mindex += 1
         gindex += 1
         assert mindex == gindex
@@ -124,3 +124,7 @@ def test_scenario_multigroup_multimodule_moduleinfo():
     assert m.subject == "Group Cのテストセット003"
     assert m.modulepath == Path("set203.py").resolve()
     assert m.run
+
+
+def test_scenario_loading_testcase():
+    s = utypes.TestScenario(Path("test\\util\\scenario_single_single.xlsx").resolve())

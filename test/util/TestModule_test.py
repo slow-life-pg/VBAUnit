@@ -159,3 +159,19 @@ def test_load_module_twice():
     assert m.testmodule.return_test_str() == "This is test function in loadee module."
     m.unload_module()
     assert m.testmodule is None
+
+
+def test_pick_test_functions():
+    m = TestModule("testidA", "subjectA", "groupA", "test\\util\\loadee.py", True)
+    m.load_module()
+    m.pick_testcases()
+    m.unload_module()
+    assert m.count == 2
+    tgt: set[str] = set()
+    for tc in m:
+        tgt.add(tc.testfunction)
+    assert tgt == {"test_function_run", "test_function_ignore"}
+    print(f"run: {m['test_function_run'].ignore}")
+    print(f"ignore: {m['test_function_ignore'].ignore}")
+    assert not m["test_function_run"].ignore
+    assert m["test_function_ignore"].ignore is True
