@@ -2,9 +2,9 @@ import sys
 import os
 from pathlib import Path
 from datetime import datetime
-from util.types import TestScenario, TestSuite
+from util.types import TestScenario, TestSuite, TestScope
 from runner.run import run_testsuite
-from vbaunit_lib.testlib import setbridgepath
+from vbaunit_lib.testlib import setglobalbridgepath
 
 
 def __isvalidargv(argv: list[str]) -> bool:
@@ -81,7 +81,7 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         workdir = __getargvalue(argstack, "-w")
         if workdir is not None:
             args["work"] = Path(workdir).resolve()
-            changecurdir(Path(workdir).resolve())
+            changecurdir(workdir)
 
         outdir = __getargvalue(argstack, "-o")
         if outdir is not None:
@@ -123,8 +123,8 @@ def printstartmessage(currentdir: Path, tooldir: Path) -> None:
     print()
 
 
-def changecurdir(newdir: Path) -> None:
-    rundir = newdir.resolve()
+def changecurdir(newdir: str) -> None:
+    rundir = Path(newdir).resolve()
     os.chdir(rundir)
 
 
@@ -160,17 +160,15 @@ if __name__ == "__main__":
         sys.exit()
 
     bridgepath = getbridgepath(tooldir=tooldir)
-    setbridgepath(bridgepath)
+    setglobalbridgepath(bridgepath)
 
     print(f"using bridge: {bridgepath}")
 
     sys.path.append(str(tooldir))  # テストコードの方でvbaunit_libが使えるようになる
 
-    changecurdir(Path(testconfig["work"]))
-
     # テストスイート
 
-    scenario = TestScenario(Path(testconfig["scenario"]))
+    scenario = TestScenario(Path(str(testconfig["scenario"])))
 
     testsuite = TestSuite(
         name=str(testconfig["name"]),
@@ -178,7 +176,7 @@ if __name__ == "__main__":
         scenario=scenario,
         filters=str(testconfig["filters"]),
         ignores=str(testconfig["ignores"]),
-        scope=str(testconfig["scope"]),
+        scope=TestScope(testconfig["scope"]),
     )
 
     # テスト実行
@@ -187,5 +185,8 @@ if __name__ == "__main__":
     print("run test!")
 
     run_testsuite(
-        testsuite, Path(testconfig["scenario"]), bridgepath, Path(testconfig["out"])
+        testsuite,
+        Path(str(testconfig["scenario"])),
+        bridgepath,
+        Path(testconfig["out"]),
     )

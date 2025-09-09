@@ -18,7 +18,7 @@ ResultCount = namedtuple("ResultCount", ["succeeded", "failed"])
 
 class TestScope(Enum):
     ALL = "all"  # all testcases
-    LAST_FAILED = "last failed"  # only failed testcases in last run
+    LAST_FAILED = "lastfailed"  # only failed testcases in last run
 
 
 @dataclass

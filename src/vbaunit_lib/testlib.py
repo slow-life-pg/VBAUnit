@@ -30,7 +30,7 @@ def ignore(func):
     return wrapper
 
 
-def setbridgepath(bridgepath: Path) -> None:
+def setglobalbridgepath(bridgepath: Path) -> None:
     global __bridgepath
     __bridgepath = bridgepath
 
