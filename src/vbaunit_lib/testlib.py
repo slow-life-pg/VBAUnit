@@ -2,7 +2,7 @@ from functools import wraps
 from pathlib import Path
 import xlwings as xl
 
-__bridgepath = Path(__file__).parent
+__globalbridgepath = Path(__file__).parent
 
 
 def description(subject: str):
@@ -31,20 +31,35 @@ def ignore(func):
 
 
 def setglobalbridgepath(bridgepath: Path) -> None:
-    global __bridgepath
-    __bridgepath = bridgepath
+    global __globalbridgepath
+    __globalbridgepath = bridgepath
+
+
+def getglobalbridgepath() -> Path:
+    global __globalbridgepath
+    return __globalbridgepath
 
 
 class VBAUnitTestLib:
-    def __init__(self, withapp: bool = True) -> None:
-        self.__bridgepath = __bridgepath
+    def __init__(
+        self, __globalbridgepath: Path, withapp: bool = True, visible: bool = False
+    ) -> None:
+        self.__bridgepath = __globalbridgepath
         self.__withapp = withapp
+        self.__visible = visible
+
         if withapp:
-            self.__app = xl.App(visible=False)
+            self.__app = xl.App(visible=visible)
         else:
             self.__app = None
         self.__book = None
         self.__internalbookname = ""
+
+        self.__comobjects: list[object] = []
+
+    @property
+    def appready(self) -> bool:
+        return self.__app is not None
 
     def exitapp(self) -> None:
         self.closeexcel()
@@ -58,11 +73,13 @@ class VBAUnitTestLib:
     def openexcel(self, excelpath: str) -> xl.Book:
         # Excelファイルを開く処理を実装
         if self.__app is None:
-            self.__app = xl.App(visible=False)
+            self.__app = xl.App(visible=self.__visible)
         self.__app.display_alerts = False
-        self.__app.screen_updating = False
+        # self.__app.screen_updating = False
 
-        self.__book = self.__app.books.open(self.__bridgepath)
+        self.__book = self.__app.books.open(
+            self.__bridgepath, update_links=True, ignore_read_only_recommended=True
+        )
         # 開けなかったらErrorが出ているはずだから独自にthrowしない。
         if self.__book:
             self.__book.api.VBProject.References.AddFromFile(excelpath)
@@ -74,14 +91,16 @@ class VBAUnitTestLib:
         if self.__book is not None:
             self.__book.close()
             self.__book = None
-            if self.__withapp:
-                self.__closeapp()
+            self.freeobjs()
+        if self.__withapp:
+            self.__closeapp()
 
     def getregexobj(self) -> object:
         """bridgeからRegexを取得"""
         if self.__book:
             vbamacro = self.__book.macro("GetRegexp")
             regexobj = vbamacro()
+            self.__comobjects.append(regexobj)
             return regexobj
         else:
             return None
@@ -91,6 +110,7 @@ class VBAUnitTestLib:
         if self.__book:
             vbamacro = self.__book.macro("GetNewCollection")
             collectionobj = vbamacro()
+            self.__comobjects.append(collectionobj)
             return collectionobj
         else:
             return None
@@ -100,6 +120,7 @@ class VBAUnitTestLib:
         if self.__book:
             vbamacro = self.__book.macro("GetNewDictionary")
             dictionaryobj = vbamacro()
+            self.__comobjects.append(dictionaryobj)
             return dictionaryobj
         else:
             return None
@@ -109,6 +130,16 @@ class VBAUnitTestLib:
         if self.__book:
             vbamacro = self.__book.macro("Free")
             vbamacro(obj)
+            if obj in self.__comobjects:
+                self.__comobjects.remove(obj)
+
+    def freeobjs(self) -> None:
+        """bridgeから取得した全てのオブジェクトを解放"""
+        if self.__book:
+            vbamacro = self.__book.macro("Free")
+            for obj in self.__comobjects:
+                vbamacro(obj)
+            self.__comobjects.clear()
 
     def callmacro(self, obj: object, macro_name: str, *args) -> object:
         """bridgeからマクロを呼び出す"""
@@ -129,5 +160,5 @@ class VBAUnitTestLib:
             return None
 
 
-def gettestlib(withapp: bool = False) -> VBAUnitTestLib:
-    return VBAUnitTestLib(withapp=withapp)
+def gettestlib(withapp: bool = False, visible: bool = False) -> VBAUnitTestLib:
+    return VBAUnitTestLib(__globalbridgepath, withapp=withapp, visible=visible)
