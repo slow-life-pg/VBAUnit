@@ -1,5 +1,6 @@
 from functools import wraps
 from pathlib import Path
+from contextlib import contextmanager
 import xlwings as xl
 
 __globalbridgepath = Path(__file__).parent
@@ -61,6 +62,14 @@ class VBAUnitTestLib:
     def appready(self) -> bool:
         return self.__app is not None
 
+    @contextmanager
+    def runapp(self, excelpath: str):
+        try:
+            book = self.openexcel(excelpath)
+            yield book
+        finally:
+            self.exitapp()
+
     def exitapp(self) -> None:
         self.closeexcel()
         self.__closeapp()
@@ -98,8 +107,7 @@ class VBAUnitTestLib:
     def getregexobj(self) -> object:
         """bridgeからRegexを取得"""
         if self.__book:
-            vbamacro = self.__book.macro("GetRegexp")
-            regexobj = vbamacro()
+            regexobj = self.__app.api.Run("GetRegexp")
             self.__comobjects.append(regexobj)
             return regexobj
         else:
@@ -108,8 +116,7 @@ class VBAUnitTestLib:
     def getcollectionobj(self) -> object:
         """bridgeからCollectionを取得"""
         if self.__book:
-            vbamacro = self.__book.macro("GetNewCollection")
-            collectionobj = vbamacro()
+            collectionobj = self.__app.api.Run("GetNewCollection")
             self.__comobjects.append(collectionobj)
             return collectionobj
         else:
@@ -118,8 +125,7 @@ class VBAUnitTestLib:
     def getdictionaryobj(self) -> object:
         """bridgeからDictionaryを取得"""
         if self.__book:
-            vbamacro = self.__book.macro("GetNewDictionary")
-            dictionaryobj = vbamacro()
+            dictionaryobj = self.__app.api.Run("GetNewDictionary")
             self.__comobjects.append(dictionaryobj)
             return dictionaryobj
         else:
@@ -128,8 +134,8 @@ class VBAUnitTestLib:
     def freeobj(self, obj: object) -> None:
         """bridgeから取得したオブジェクトを解放"""
         if self.__book:
-            vbamacro = self.__book.macro("Free")
-            vbamacro(obj)
+            if obj:
+                self.__app.api.Run("Free", obj)
             if obj in self.__comobjects:
                 self.__comobjects.remove(obj)
 
@@ -145,11 +151,11 @@ class VBAUnitTestLib:
         """bridgeからマクロを呼び出す"""
         if self.__book:
             if len(args) <= 16:
-                vbamacro = self.__book.macro(macro_name)
+                vbamacro = self.__book.macro("CallMacro")
                 res: list[object] = vbamacro(
                     obj, self.__internalbookname, macro_name, *args
                 )
-                return res[0] if res else None
+                return res
             else:
                 print(
                     f"callmacro: too many macro arguments {len(args)}. Must be <= 16."
