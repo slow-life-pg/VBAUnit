@@ -142,28 +142,45 @@ class VBAUnitTestLib:
     def freeobjs(self) -> None:
         """bridgeから取得した全てのオブジェクトを解放"""
         if self.__book:
-            vbamacro = self.__book.macro("Free")
+            freemacro = self.__book.macro("Free")
             for obj in self.__comobjects:
-                vbamacro(obj)
+                freemacro(obj)
             self.__comobjects.clear()
 
-    def callmacro(self, obj: object, macro_name: str, *args) -> object:
-        """bridgeからマクロを呼び出す"""
+    def callmacro(self, obj: object, macro_name: str, *args) -> list[object]:
+        return self.__callmacro(obj, False, macro_name, *args)
+
+    def callcreativemacro(self, obj: object, macro_name: str, *args) -> list[object]:
+        res = self.__callmacro(obj, True, macro_name, *args)
+        if res[0]:
+            self.__comobjects.append(res[0])
+        return res
+
+    def registercomobject(self, obj: object):
+        if obj:
+            self.__comobjects.append(obj)
+
+    def __callmacro(
+        self, obj: object, creation: bool, macro_name: str, *args
+    ) -> list[object]:
+        """bridgeからマクロを呼び出す。"""
         if self.__book:
             if len(args) <= 16:
                 vbamacro = self.__book.macro("CallMacro")
+                vbargs = list(args)
                 res: list[object] = vbamacro(
-                    obj, self.__internalbookname, macro_name, *args
+                    obj, creation, self.__internalbookname, macro_name, vbargs
                 )
+                self.__comobjects.append(res)
                 return res
             else:
                 print(
                     f"callmacro: too many macro arguments {len(args)}. Must be <= 16."
                 )
-                return None
+                return [None]
         else:
             print("callmacro: no book has opened")
-            return None
+            return [None]
 
 
 def gettestlib(withapp: bool = False, visible: bool = False) -> VBAUnitTestLib:

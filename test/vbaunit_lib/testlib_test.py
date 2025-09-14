@@ -101,3 +101,80 @@ def test_passingaround_dictionary():
         assert dic.Count == len(expected)
         for key in dic.Keys():
             assert dic.Item(key) == expected[key]
+
+
+def test_callmacro_byref():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        p = 0  # dummy
+        res = testlib.callmacro(None, "BackRefInt", p)
+        assert len(res) == 4
+        assert p == 0
+        assert res[2] == 0
+        assert res[0] is None
+        assert res[1] == 100
+
+
+def test_callmacro_return():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        p = 123
+        res = testlib.callmacro(None, "BackReturn", p)
+        assert len(res) == 4
+        assert res[2] == 0
+        assert res[0] == "Value is 123"
+        assert res[1] == 123
+
+
+def test_callmacro_createobject():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        res = testlib.callcreativemacro(None, "CreateClass1Object")
+        print(f"Error: {res[1]} {res[2]}")
+        assert len(res) == 3
+        assert res[1] == 0
+        comobj = res[0]
+        assert comobj is not None
+
+
+def test_object_property():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        res = testlib.callcreativemacro(None, "CreateClass2Object")
+        print(f"Error: {res[1]} {res[2]}")
+        assert len(res) == 3
+        assert res[1] == 0
+        comobj = res[0]
+        assert comobj is not None
+        assert comobj.Message == "This is Class2"
+
+
+def test_object_function():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        res = testlib.callcreativemacro(None, "CreateClass2Object")
+        print(f"Error: {res[1]} {res[2]}")
+        assert len(res) == 3
+        assert res[0] is not None
+        msg = res[0].GetCustomMessage("CallMacro")
+        assert msg == "This is CallMacro from Class2"
+
+
+def test_object_byref():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        res = testlib.callcreativemacro(None, "CreateClass2Object")
+        assert len(res) == 3
+        assert res[0] is not None
+        res2 = testlib.callmacro(res[0], "GetMessageLength", "CallMacro", 0)
+        print(f"Error: {res2[3]} {res2[4]}")
+        assert len(res2) == 5
+        assert res2[3] == 0
+        assert res2[0] is None
+        assert res2[2] == 9
