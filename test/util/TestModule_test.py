@@ -11,15 +11,15 @@ def test_init_and_count():
 
 def test_add_test_case():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    tc = m.add_testcase("func1", "func subject1", False)
+    tc = m.add_testcase("func1", "func subject1", 1, False)
     assert m.count == 1
     assert m[0] == tc
 
 
 def test_case_order():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    m.add_testcase("func1", "func subject1", False)
-    m.add_testcase("func2", "func subject2", False)
+    m.add_testcase("func1", "func subject1", 1, False)
+    m.add_testcase("func2", "func subject2", 1, False)
     assert m.count == 2
     assert m[0].testfunction == "func1"
     assert m[1].testfunction == "func2"
@@ -28,8 +28,8 @@ def test_case_order():
 def test_module_yield():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
     tc = list[TestCase]()
-    tc.append(m.add_testcase("func1", "func subject1", False))
-    tc.append(m.add_testcase("func2", "func subject2", False))
+    tc.append(m.add_testcase("func1", "func subject1", 1, False))
+    tc.append(m.add_testcase("func2", "func subject2", 1, False))
     assert m.count == 2
     index = 0
     for c in m:
@@ -39,21 +39,21 @@ def test_module_yield():
 
 def test_result_none_initial_state():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    tr = m.set_result("f", True, None)
+    tr = m.set_result("f", 1, True, None)
     assert tr is None
 
 
 def test_result_none_doesnt_match_when_set():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    m.add_testcase("f", "s", False)
-    tr = m.set_result("ff", True, None)
+    m.add_testcase("f", "s", 1, False)
+    tr = m.set_result("ff", 1, True, None)
     assert tr is None
 
 
 def test_result_none_doesnt_match_when_get():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    m.add_testcase("f", "s", False)
-    tr = m.set_result("f", True, None)
+    m.add_testcase("f", "s", 1, False)
+    tr = m.set_result("f", 1, True, None)
     assert tr is not None
     tr = m.get_result("ff")
     assert tr is None
@@ -61,9 +61,9 @@ def test_result_none_doesnt_match_when_get():
 
 def test_result_single_case():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    m.add_testcase("f", "s", False)
+    m.add_testcase("f", "s", 1, False)
     ra = date(2025, 8, 31)
-    tr = m.set_result("f", True, ra)
+    tr = m.set_result("f", 1, True, ra)
     assert m.resultcount == ResultCount(succeeded=1, failed=0)
     assert tr.testid == "testidA"
     assert tr.group == "groupA"
@@ -75,11 +75,11 @@ def test_result_single_case():
 
 def test_result_single_case_overwrite():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    m.add_testcase("f", "s", False)
+    m.add_testcase("f", "s", 1, False)
     raa = date(2025, 8, 31)
     rab = date(2025, 9, 1)
-    m.set_result("f", True, raa)
-    m.set_result("f", False, rab)
+    m.set_result("f", 1, True, raa)
+    m.set_result("f", 1, False, rab)
     assert m.resultcount == ResultCount(succeeded=0, failed=1)
     tr = m.get_result("f")
     assert tr.succeeded is False
@@ -88,12 +88,12 @@ def test_result_single_case_overwrite():
 
 def test_result_dual_case():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    m.add_testcase("f1", "s", False)
-    m.add_testcase("f2", "s", False)
+    m.add_testcase("f1", "s", 1, False)
+    m.add_testcase("f2", "s", 1, False)
     raa = date(2025, 8, 31)
     rab = date(2025, 9, 1)
-    tr1 = m.set_result("f1", True, raa)
-    tr2 = m.set_result("f2", False, rab)
+    tr1 = m.set_result("f1", 1, True, raa)
+    tr2 = m.set_result("f2", 1, False, rab)
     assert m.resultcount == ResultCount(succeeded=1, failed=1)
     assert tr1.testfunction == "f1"
     assert tr1.succeeded is True
@@ -105,12 +105,12 @@ def test_result_dual_case():
 
 def test_result_dual_case_yield():
     m = TestModule("testidA", "subjectA", "groupA", "moduleA", True, 2)
-    m.add_testcase("f2", "s", False)
-    m.add_testcase("f1", "s", False)
+    m.add_testcase("f2", "s", 1, False)
+    m.add_testcase("f1", "s", 1, False)
     raa = date(2025, 8, 31)
     rab = date(2025, 9, 1)
-    tr2 = m.set_result("f2", False, rab)
-    tr1 = m.set_result("f1", True, raa)
+    tr2 = m.set_result("f2", 1, False, rab)
+    tr1 = m.set_result("f1", 1, True, raa)
     assert m.resultcount == ResultCount(succeeded=1, failed=1)
     index = 0
     for r in m.results:

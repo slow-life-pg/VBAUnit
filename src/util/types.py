@@ -37,6 +37,7 @@ class TestCase:
     module: TestModule
     testfunction: str
     subject: str
+    start_line: int
     ignore: bool
 
 
@@ -53,8 +54,9 @@ class TestResult:
 
     testid: str
     group: str
-    module: str
+    module: TestModule
     testfunction: str
+    start_line: int
     succeeded: bool
     runned_at: str
 
@@ -140,13 +142,16 @@ class TestModule:
             del sys.modules[self.__testmodulekey]
         self.__testmodulekey = "testee"
 
-    def add_testcase(self, testfunction: str, subject: str, ignore: bool) -> TestCase:
+    def add_testcase(
+        self, testfunction: str, subject: str, start_line: int, ignore: bool
+    ) -> TestCase:
         tc = TestCase(
             testid=self.testid,
             group=self.__group,
             module=self.__modulepath,
             testfunction=testfunction,
             subject=subject,
+            start_line=start_line,
             ignore=ignore,
         )
         self.__testcases.append(tc)
@@ -162,15 +167,17 @@ class TestModule:
             if name.startswith("test_")
         ]
         for name, f in testfunctions:
+            _, start_line = inspect.getsourcelines(f)
             self.add_testcase(
                 testfunction=name,
                 subject=getattr(f, "_subject", ""),
+                start_line=start_line,
                 ignore=getattr(f, "_is_ignored", False),
             )
         self.unload_module()
 
     def set_result(
-        self, testfunction: str, succeeded: bool, runned_at: datetime
+        self, testfunction: str, start_line: int, succeeded: bool, runned_at: datetime
     ) -> TestResult | None:
         if testfunction in self.__testfunctions:
             succeeded = TestResult(
@@ -178,6 +185,7 @@ class TestModule:
                 group=self.__group,
                 module=self.__modulepath,
                 testfunction=testfunction,
+                start_line=start_line,
                 succeeded=succeeded,
                 runned_at=runned_at,
             )
