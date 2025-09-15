@@ -10,12 +10,33 @@ def __gettimestampnow() -> str:
     return datetime.now().isoformat(sep=" ", timespec="milliesconds")
 
 
+def __writestartlog(testcase: TestCase) -> None:
+    config: dict[str, str] = {
+        "testid": testcase.testid,
+        "group": testcase.group,
+        "module": testcase.module.modulepath.name,
+        "function": testcase.testfunction,
+        "start": __gettimestampnow(),
+    }
+    print("Running test case:")
+    print(json.dumps(config))
+
+
+def __writeendlog(result: TestResult) -> None:
+    outcome: dict[str, str] = {
+        "succeeded": str(result.succeeded),
+        "end": result.runned_at,
+    }
+    print(json.dumps(outcome))
+
+
 def __createresult(testcase: TestCase, succeeded: bool) -> TestResult:
     result = TestResult(
         testid=testcase.testid,
         group=testcase.group,
-        module=str(testcase.module.modulepath),
+        module=testcase.module,
         testfunction=testcase.testfunction,
+        start_line=testcase.start_line,
         succeeded=succeeded,
         runned_at=__gettimestampnow(),
     )
@@ -33,21 +54,14 @@ def run_testsuite(suite: TestSuite, scenario: Path, bridge: Path, out: Path) -> 
     print(f"Output: {out}")
 
     outputpath = out.joinpath(scenario.name)
+    testlogpath = out.joinpath("testlog.txt")
     shutil.copy(scenario, outputpath)
 
     # 実行
 
     results = list[TestResult]()
     for testcase in suite:
-        config: dict[str, str] = {
-            "testid": testcase.testid,
-            "group": testcase.group,
-            "module": testcase.module.modulepath.name,
-            "function": testcase.testfunction,
-            "start": __gettimestampnow(),
-        }
-        print("Running test case:")
-        print(json.dumps(config))
+        __writestartlog(testcase=testcase)
 
         try:
             result = __runtestcase(testcase=testcase)
@@ -55,11 +69,7 @@ def run_testsuite(suite: TestSuite, scenario: Path, bridge: Path, out: Path) -> 
             print(f"Runtime error: {e}")
             result = __createresult(testcase=testcase, succeeded=False)
 
-        outcome: dict[str, str] = {
-            "succeeded": str(result.succeeded),
-            "end": result.runned_at,
-        }
-        print(json.dumps(outcome))
+        __writeendlog(result=result)
         results.append(result)
 
     # 結果の書込
@@ -67,6 +77,8 @@ def run_testsuite(suite: TestSuite, scenario: Path, bridge: Path, out: Path) -> 
     resultbook = None
     try:
         resultbook = load_workbook(outputpath)
+
+        resultbook.save(outputpath)
     finally:
         if resultbook:
             resultbook.close()
