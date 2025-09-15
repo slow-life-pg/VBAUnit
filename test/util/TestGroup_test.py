@@ -12,6 +12,7 @@ def patched_test_module(mocker):
         group: str
         modulepath: str
         run: bool
+        line: int
 
     mocker.patch("util.types.TestModule", FakeTestModule)
     # mocker.patch.object(utypes, "TestModule", FakeTestModule)
@@ -28,7 +29,7 @@ def test_init_and_count():
 def test_add_test_module(patched_test_module):
     g = utypes.TestGroup("GA")
     tm = g.add_test_module(
-        testid="test1", subject="subject1", module="module1", run=True
+        testid="test1", subject="subject1", module="module1", run=True, line=2
     )
     assert g.count == 1
     assert g[0] == tm
@@ -36,8 +37,12 @@ def test_add_test_module(patched_test_module):
 
 def test_module_order(patched_test_module):
     g = utypes.TestGroup("GA")
-    g.add_test_module(testid="test1", subject="subject1", module="module1", run=True)
-    g.add_test_module(testid="test2", subject="subject2", module="module2", run=True)
+    g.add_test_module(
+        testid="test1", subject="subject1", module="module1", run=True, line=2
+    )
+    g.add_test_module(
+        testid="test2", subject="subject2", module="module2", run=True, line=2
+    )
     assert g.count == 2
     assert g[0].testid == "test1"
     assert g[1].testid == "test2"
@@ -48,12 +53,12 @@ def test_module_yield(patched_test_module):
     tm = list[utypes.TestModule]()
     tm.append(
         g.add_test_module(
-            testid="test1", subject="subject1", module="module1", run=True
+            testid="test1", subject="subject1", module="module1", run=True, line=2
         )
     )
     tm.append(
         g.add_test_module(
-            testid="test2", subject="subject2", module="module2", run=True
+            testid="test2", subject="subject2", module="module2", run=True, line=2
         )
     )
     assert g.count == 2

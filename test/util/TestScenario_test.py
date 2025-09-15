@@ -31,6 +31,7 @@ def test_scenario_singlegroup_singlemodule_moduleinf():
     assert m.subject == "Group Aのテストセット001"
     assert m.modulepath == Path("set001.py").resolve()
     assert m.run
+    assert m.line == 3
 
 
 def test_scenario_singlegroup_multimodule_basicproperty():
@@ -51,16 +52,19 @@ def test_scenario_singlegroup_multimodule_moduleinf():
     assert m.subject == "Group Aのテストセット001"
     assert m.modulepath == Path("set001.py").resolve()
     assert m.run
+    assert m.line == 3
     m = g[1]
     assert m.testid == "A-002"
     assert m.subject == "Group Aのテストセット002"
     assert m.modulepath == Path("set002.py").resolve()
     assert not m.run
+    assert m.line == 4
     m = g[2]
     assert m.testid == "A-003"
     assert m.subject == "Group Aのテストセット003"
     assert m.modulepath == Path("set003.py").resolve()
     assert m.run
+    assert m.line == 5
 
 
 def test_scenario_multigroup_multimodule_basicproperty():
@@ -95,6 +99,7 @@ def test_scenario_multigroup_multimodule_moduleinfo():
     assert m.subject == "Group Aのテストセット001"
     assert m.modulepath == Path("set001.py").resolve()
     assert m.run
+    assert m.line == 3
     g = s[1]
     assert g.count == 2
     m = g[0]
@@ -102,11 +107,13 @@ def test_scenario_multigroup_multimodule_moduleinfo():
     assert m.subject == "Group Bのテストセット001"
     assert m.modulepath == Path("set101.py").resolve()
     assert m.run
+    assert m.line == 3
     m = g[1]
     assert m.testid == "B-002"
     assert m.subject == "Group Bのテストセット002"
     assert m.modulepath == Path("set102.py").resolve()
     assert m.run
+    assert m.line == 4
     g = s[2]
     assert g.count == 3
     m = g[0]
@@ -114,16 +121,19 @@ def test_scenario_multigroup_multimodule_moduleinfo():
     assert m.subject == "Group Cのテストセット001"
     assert m.modulepath == Path("set201.py").resolve()
     assert m.run
+    assert m.line == 3
     m = g[1]
     assert m.testid == "C-002"
     assert m.subject == "Group Cのテストセット002"
     assert m.modulepath == Path("set202.py").resolve()
     assert m.run
+    assert m.line == 4
     m = g[2]
     assert m.testid == "C-003"
     assert m.subject == "Group Cのテストセット003"
     assert m.modulepath == Path("set203.py").resolve()
     assert m.run
+    assert m.line == 5
 
 
 def test_scenario_loading_testcase():

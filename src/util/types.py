@@ -65,7 +65,13 @@ class TestModule:
     testid: str
 
     def __init__(
-        self, testid: str, subject: str, group: str, modulepath: str, run: bool
+        self,
+        testid: str,
+        subject: str,
+        group: str,
+        modulepath: str,
+        run: bool,
+        line: int,
     ) -> None:
         """テストモジュールを作成する。
         testid: テストモジュールの識別ID
@@ -73,12 +79,14 @@ class TestModule:
         group: テストグループの名称
         modulepath: テストモジュールのパス
         run: テストモジュールを実行するかどうか
+        line: Excel上の行番号（実行結果を書き込むため保存）
         """
         self.testid = testid
         self.__subject = subject
         self.__group = group
         self.__modulepath = modulepath
         self.__run = run
+        self.__line = line
 
         self.__testcases: list[TestCase] = []
         self.__testfunctions: list[str] = []
@@ -119,6 +127,10 @@ class TestModule:
     @property
     def run(self) -> bool:
         return self.__run
+
+    @property
+    def line(self) -> bool:
+        return self.__line
 
     def unload_module(self) -> None:
         if self.__testmodule:
@@ -235,7 +247,7 @@ class TestGroup:
         self.__testmodules: list[TestModule] = []
 
     def add_test_module(
-        self, testid: str, module: str, subject: str, run: bool
+        self, testid: str, module: str, subject: str, run: bool, line: int
     ) -> TestModule:
         testmodule = TestModule(
             testid=testid,
@@ -243,6 +255,7 @@ class TestGroup:
             group=self.groupname,
             modulepath=module,
             run=run,
+            line=line,
         )
         self.__testmodules.append(testmodule)
         return testmodule
@@ -361,6 +374,7 @@ class TestScenario:
                 subject=gsheet.cell(row, 3).value,
                 module=gsheet.cell(row, 4).value,
                 run=self.__getrequired(gsheet.cell(row, 5).value),
+                line=row,
             )
             row += 1
 
