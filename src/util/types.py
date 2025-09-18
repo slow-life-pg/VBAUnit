@@ -131,7 +131,7 @@ class TestModule:
         return self.__run
 
     @property
-    def line(self) -> bool:
+    def line(self) -> int:
         return self.__line
 
     def unload_module(self) -> None:
