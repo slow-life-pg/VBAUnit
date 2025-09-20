@@ -142,9 +142,7 @@ class TestModule:
             del sys.modules[self.__testmodulekey]
         self.__testmodulekey = "testee"
 
-    def add_testcase(
-        self, testfunction: str, subject: str, start_line: int, ignore: bool
-    ) -> TestCase:
+    def add_testcase(self, testfunction: str, subject: str, start_line: int, ignore: bool) -> TestCase:
         tc = TestCase(
             testid=self.testid,
             group=self.__group,
@@ -161,11 +159,7 @@ class TestModule:
     def pick_testcases(self) -> None:
         """テストモジュール内の全てのテストケースを列挙する"""
         self.load_module()
-        testfunctions = [
-            (name, f)
-            for name, f in inspect.getmembers(self.__testmodule, inspect.isfunction)
-            if name.startswith("test_")
-        ]
+        testfunctions = [(name, f) for name, f in inspect.getmembers(self.__testmodule, inspect.isfunction) if name.startswith("test_")]
         for name, f in testfunctions:
             _, start_line = inspect.getsourcelines(f)
             self.add_testcase(
@@ -176,9 +170,7 @@ class TestModule:
             )
         self.unload_module()
 
-    def set_result(
-        self, testfunction: str, start_line: int, succeeded: bool, runned_at: datetime
-    ) -> TestResult | None:
+    def set_result(self, testfunction: str, start_line: int, succeeded: bool, runned_at: datetime) -> TestResult | None:
         if testfunction in self.__testfunctions:
             succeeded = TestResult(
                 testid=self.testid,
@@ -254,9 +246,7 @@ class TestGroup:
         self.groupname = name
         self.__testmodules: list[TestModule] = []
 
-    def add_test_module(
-        self, testid: str, module: str, subject: str, run: bool, line: int
-    ) -> TestModule:
+    def add_test_module(self, testid: str, module: str, subject: str, run: bool, line: int) -> TestModule:
         testmodule = TestModule(
             testid=testid,
             subject=subject,
@@ -406,6 +396,7 @@ class TestSuite:
         name: str,
         subject: str,
         scenario: TestScenario,
+        groups: str = "",
         filters: str = "",
         ignores: str = "",
         scope: TestScope = TestScope.ALL,
@@ -414,18 +405,27 @@ class TestSuite:
         name: テストスイートを識別する名称（この名前でログを出力する）
         subject: テストスイートの説明
         scenario: テストシナリオ
+        groups: 実行すべきテストグループの名称。Excelのシート名
         filters: 実行するべきテストケースの関数名に含まれる識別子（任意の文字列）。"|"区切り。省略した場合はフィルタリングしない
         ignores: 無視するテストケースの関数名に含まれる識別子（任意の文字列）。"|"区切り。省略した場合は無視しない
         scope: 実行する範囲。全部か前回の失敗のみ
         """
         self.__name = name
         self.__subject = subject
+        self.__groups = self.__getconditionlist(groups)
         self.__filters = self.__getconditionlist(filters)
         self.__ignores = self.__getconditionlist(ignores)
         self.__scope = scope
         self.__tests = list[TestCase]()
         self.__testset = dict[str, list[TestCase]]()
+
+        if len(self.__groups) == 0:
+            # 絞り込みが無ければ全グループを実行する
+            for group in scenario:
+                self.__groups.append(group.groupname)
         for group in scenario:
+            if group.groupname not in self.__groups:
+                continue
             for module in group:
                 if not module.run:
                     continue
@@ -463,9 +463,7 @@ class TestSuite:
     def __getconditionlist(self, conditions: str) -> list[str]:
         return [f.strip() for f in conditions.split("|") if len(f.strip()) > 0]
 
-    def __torun(
-        self, testcase: TestCase, filters: list[str], ignores: list[str]
-    ) -> bool:
+    def __torun(self, testcase: TestCase, filters: list[str], ignores: list[str]) -> bool:
         if testcase.ignore:
             return False
         if self.__includestest(testcase.testfunction, ignores):

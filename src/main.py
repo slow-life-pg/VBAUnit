@@ -43,18 +43,15 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         print("Usage:")
         print(
             "python main.py {testsuite path} [-w {working directory}][-o {output directory}][-n {test suite name}]"
-            "[-d {test suite description}][-f {execution filter}][-i {ignore filter}][-s {scope}]"
+            "[-d {test suite description}][-g {group name}][-f {execution filter}][-i {ignore filter}][-s {scope}]"
         )
         print()
         print("testscenario path: absolute path for scenario file (required)")
-        print(
-            "working directory: relational path for output directory based on scenario folder (optional)"
-        )
-        print(
-            "output directory: relational path for output directory based on scenario folder (optional)"
-        )
+        print("working directory: relational path for output directory based on scenario folder (optional)")
+        print("output directory: relational path for output directory based on scenario folder (optional)")
         print("test suite name: name for the test suite (optional)")
         print("test suite description: subject for the test suite (optional)")
+        print("execution group name: group name for the tests to be executed (optional)")
         print("execution filter: filter for the tests to be executed (optional)")
         print("ignore filter: filter for the tests to be ignored (optional)")
         print("scope: all or lastfailed (optional)")
@@ -72,6 +69,7 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         "out": scenariopath.parent.joinpath("results"),
         "name": f"VBAUnit {datetime.now():%Y%m%d%H%M%S}",
         "subject": f"VBAUnit Test {scenariopath.name}",
+        "groups": "",
         "filters": "",
         "ignores": "",
         "scope": "all",
@@ -96,6 +94,10 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
             subject = subject.strip('"')  # ダブルクオートを外す
             args["subject"] = subject
 
+        groups = __getargvalue(argstack, "-g")
+        if groups is not None:
+            args["groups"] = groups
+
         filters = __getargvalue(argstack, "-f")
         if filters is not None:
             args["filters"] = filters
@@ -119,7 +121,7 @@ def printstartmessage(currentdir: Path, tooldir: Path) -> None:
     print("****************************************")
     print(f"VBAUnit kicked on {currentdir}")
     print(f"Tool is in {tooldir}")
-    print(f"{datetime.now()}")
+    print(f"{datetime.now():%Y/%m/%d %H:%M:%S}")
     print()
 
 
@@ -174,6 +176,7 @@ if __name__ == "__main__":
         name=str(testconfig["name"]),
         subject=str(testconfig["subject"]),
         scenario=scenario,
+        groups=str(testconfig["groups"]),
         filters=str(testconfig["filters"]),
         ignores=str(testconfig["ignores"]),
         scope=TestScope(testconfig["scope"]),
