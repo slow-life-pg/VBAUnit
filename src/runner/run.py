@@ -1,3 +1,4 @@
+import importlib.util
 from pathlib import Path
 import shutil
 import json
@@ -50,7 +51,27 @@ def __createresult(testcase: TestCase, succeeded: bool) -> TestResult:
 
 
 def __runtestcase(testcase: TestCase, f) -> TestResult:
-    return __createresult(testcase=testcase, succeeded=False)
+    succeeded = True
+
+    try:
+        testcase.module.load_module()
+        realmodule = testcase.module.testmodule
+
+        # 関数を取得
+        if not hasattr(realmodule, testcase.testfunction):
+            raise AttributeError(f"Function '{testcase.testfunction}' not found in {realmodule.__name__}")
+
+        func = getattr(realmodule, testcase.testfunction)
+
+        # 実行 -> 失敗時はAssertionErrorが出る想定
+        func()
+    except AssertionError as ae:
+        succeeded = False
+        raise ae
+    finally:
+        testcase.module.unload_module()
+
+    return __createresult(testcase=testcase, succeeded=succeeded)
 
 
 def __setmoduleresults(
