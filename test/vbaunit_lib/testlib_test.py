@@ -32,9 +32,7 @@ def test_start_withapp():
 def test_open_close_book():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
-    with testlib.runapp(
-        "C:/Dev/VBAUnit/test/vbaunit_lib/GetSimpleMessage.xlsm"
-    ) as testbook:
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/GetSimpleMessage.xlsm") as testbook:
         assert testbook is not None
         assert testbook.sheets.count == 1
 
@@ -42,9 +40,7 @@ def test_open_close_book():
 def test_get_simple_message():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
-    with testlib.runapp(
-        "C:/Dev/VBAUnit/test/vbaunit_lib/GetSimpleMessage.xlsm"
-    ) as testbook:
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/GetSimpleMessage.xlsm") as testbook:
         gsm = testbook.macro("GetSimpleMessage")
         msg = gsm()
         assert msg == "Simple Module Message"
@@ -53,9 +49,7 @@ def test_get_simple_message():
 def test_get_simple_message_withmodulename():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
-    with testlib.runapp(
-        "C:/Dev/VBAUnit/test/vbaunit_lib/GetSimpleMessage.xlsm"
-    ) as testbook:
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/GetSimpleMessage.xlsm") as testbook:
         gsm = testbook.macro("Module1.GetSimpleMessage")
         msg = gsm()
         assert msg == "Simple Module Message"
@@ -64,9 +58,7 @@ def test_get_simple_message_withmodulename():
 def test_passingaround_regex():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
-    with testlib.runapp(
-        "C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm"
-    ) as testbook:
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm") as testbook:
         rgx = testlib.getregexobj()
         gd = testbook.macro("GetDigits")
         msg = gd(rgx)
@@ -77,9 +69,7 @@ def test_passingaround_regex():
 def test_passingaround_collection():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
-    with testlib.runapp(
-        "C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm"
-    ) as testbook:
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm") as testbook:
         coll = testlib.getcollectionobj()
         sl = testbook.macro("SetListValue")
         sl(coll, 2)
@@ -91,9 +81,7 @@ def test_passingaround_collection():
 def test_passingaround_dictionary():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
-    with testlib.runapp(
-        "C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm"
-    ) as testbook:
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm") as testbook:
         expected = {2: "ABC", 4: "DEF"}
         dic = testlib.getdictionaryobj()
         sd = testbook.macro("SetDictionaryValue")
@@ -178,3 +166,24 @@ def test_object_byref():
         assert res2[3] == 0
         assert res2[0] is None
         assert res2[2] == 9
+
+
+def test_assertion_pass():
+    from vbaunit_lib.testlib import expect
+
+    try:
+        expect(1 + 1 == 2)
+    except AssertionError:
+        assert False, "This should not happen"
+    assert True
+
+
+def test_assertion_fault():
+    from vbaunit_lib.testlib import expect
+
+    try:
+        expect(1 + 1 == 3)
+        assert False, "This should not happen"
+    except AssertionError as ae:
+        assert str(ae).startswith("Check failed at ")
+        assert " -> expect(1 + 1 == 3)" in str(ae)

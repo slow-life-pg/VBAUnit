@@ -1,9 +1,25 @@
+import inspect
 from functools import wraps
 from pathlib import Path
 from contextlib import contextmanager
 import xlwings as xl
 
 __globalbridgepath = Path(__file__).parent
+
+
+def expect(requirement: bool, msg: str = "") -> None:
+    """期待値を検証する関数。requirementがTrueであれば成功、Falseであれば失敗とする。"""
+    if requirement:
+        return
+
+    frame = inspect.currentframe()
+    if frame is None or frame.f_back is None:
+        raise AssertionError("Could not inspect caller frame")
+    caller = frame.f_back
+    info = inspect.getframeinfo(caller)
+    # その行のソースコードを取得（存在する場合）
+    src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
+    raise AssertionError(f"Check failed at {info.filename}:{info.lineno}\n  -> {src_line}" + (f"\n  msg: {msg}" if msg else ""))
 
 
 def description(subject: str):
@@ -42,9 +58,7 @@ def getglobalbridgepath() -> Path:
 
 
 class VBAUnitTestLib:
-    def __init__(
-        self, __globalbridgepath: Path, withapp: bool = True, visible: bool = False
-    ) -> None:
+    def __init__(self, __globalbridgepath: Path, withapp: bool = True, visible: bool = False) -> None:
         self.__bridgepath = __globalbridgepath
         self.__withapp = withapp
         self.__visible = visible
@@ -86,9 +100,7 @@ class VBAUnitTestLib:
         self.__app.display_alerts = False
         # self.__app.screen_updating = False
 
-        self.__book = self.__app.books.open(
-            self.__bridgepath, update_links=True, ignore_read_only_recommended=True
-        )
+        self.__book = self.__app.books.open(self.__bridgepath, update_links=True, ignore_read_only_recommended=True)
         # 開けなかったらErrorが出ているはずだから独自にthrowしない。
         if self.__book:
             self.__book.api.VBProject.References.AddFromFile(excelpath)
@@ -160,23 +172,17 @@ class VBAUnitTestLib:
         if obj:
             self.__comobjects.append(obj)
 
-    def __callmacro(
-        self, obj: object, creation: bool, macro_name: str, *args
-    ) -> list[object]:
+    def __callmacro(self, obj: object, creation: bool, macro_name: str, *args) -> list[object]:
         """bridgeからマクロを呼び出す。"""
         if self.__book:
             if len(args) <= 16:
                 vbamacro = self.__book.macro("CallMacro")
                 vbargs = list(args)
-                res: list[object] = vbamacro(
-                    obj, creation, self.__internalbookname, macro_name, vbargs
-                )
+                res: list[object] = vbamacro(obj, creation, self.__internalbookname, macro_name, vbargs)
                 self.__comobjects.append(res)
                 return res
             else:
-                print(
-                    f"callmacro: too many macro arguments {len(args)}. Must be <= 16."
-                )
+                print(f"callmacro: too many macro arguments {len(args)}. Must be <= 16.")
                 return [None]
         else:
             print("callmacro: no book has opened")
