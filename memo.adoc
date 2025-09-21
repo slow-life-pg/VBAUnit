@@ -59,3 +59,16 @@ class B:
     def __init__(self):
         self.member = ""
 ....
+
+## エラー警告抑制
+### PyLint
+PyLint:Args
+|=番号=|=説明=|
+|W0718|try-exceptでExceptionをキャッチすると警告|
+
+### Ruff
+|=番号=|=説明=|
+|E402|import文がファイルの先頭に無い|
+
+## VBAの許可
+Excel -> ファイル -> オプション -> トラストセンター -> トラストセンターの設定 -> 信頼できる場所 -> 「サブフォルダも」
