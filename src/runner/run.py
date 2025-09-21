@@ -1,4 +1,3 @@
-import importlib.util
 from pathlib import Path
 import shutil
 import json
@@ -122,7 +121,7 @@ def __runtestsuite(
         )
 
 
-def __writemodulersult(
+def __writemoduleresults(
     resultbook: Workbook, modulelist: list[TestModule], modulesummary_success: dict[str, int], modulesummary_failure: dict[str, int]
 ) -> None:
     for module in modulelist:
@@ -148,7 +147,7 @@ def __writeresults(resultsheet: Worksheet, results: list[TestResult]) -> None:
             "succeeded": result.succeeded,
             "runned_at": result.runned_at,
         }
-        newsheet.cell(row=max_row, column=1, value=json.dumps(resultdump))
+        resultsheet.cell(row=max_row, column=1, value=json.dumps(resultdump))
         max_row += 1
 
 
@@ -196,7 +195,7 @@ def run_testsuite(suite: TestSuite, scenario: Path, bridge: Path, out: Path) -> 
         resultbook = load_workbook(outputpath)
 
         # モジュールの結果
-        __writemodulersult(
+        __writemoduleresults(
             resultbook=resultbook,
             modulelist=modulelist,
             modulesummary_success=modulesummary_success,
