@@ -103,8 +103,9 @@ class VBAUnitTestLib:
         self.__book = self.__app.books.open(self.__bridgepath, update_links=True, ignore_read_only_recommended=True)
         # 開けなかったらErrorが出ているはずだから独自にthrowしない。
         if self.__book:
-            self.__book.api.VBProject.References.AddFromFile(excelpath)
-            self.__internalbookname = Path(excelpath).name
+            excelfullpath = Path(excelpath).resolve()
+            self.__book.api.VBProject.References.AddFromFile(excelfullpath)
+            self.__internalbookname = excelfullpath.name
 
         return self.__book
 

@@ -8,13 +8,14 @@ from vbaunit_lib.testlib import setglobalbridgepath
 
 
 def __isvalidargv(argv: list[str]) -> bool:
-    if len(argv) == 1:
+    # 先頭要素は"main.py"
+    if len(argv) == 2:
         # 引数が最低1つ必要
-        return False
+        return True
     if len(argv) % 2 == 0:
         # 必ず奇数個
-        return False
-    return True
+        return True
+    return False
 
 
 def __getargvalue(argv: list[str], key: str) -> str | None:
@@ -25,6 +26,13 @@ def __getargvalue(argv: list[str], key: str) -> str | None:
         del argv[keyindex]  # valueを削除
         return value
     return None
+
+
+def __createoutpudirectory(dir: Path) -> None:
+    if str(dir) == "" or dir.exists():
+        return
+    __createoutpudirectory(dir.parent)
+    dir.mkdir()
 
 
 def initenv(argv: list[str]) -> dict[str, str | Path]:
@@ -59,14 +67,16 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         sys.exit()
 
     argstack = argv.copy()
+    argstack.pop(0)  # 先頭を除去
 
-    scenariopath = Path(argv[1]).resolve()
-    programdir = Path(__file__).parent.resolve()
+    patharg = argstack.pop(0)
+    scenariopath = Path(patharg).resolve()
+    workingdir = scenariopath.parent
 
     args: dict[str, str | Path] = {
         "scenario": scenariopath,
-        "work": programdir,
-        "out": scenariopath.parent.joinpath("results"),
+        "work": workingdir,
+        "out": workingdir.joinpath("results"),
         "name": f"VBAUnit {datetime.now():%Y%m%d%H%M%S}",
         "subject": f"VBAUnit Test {scenariopath.name}",
         "groups": "",
@@ -79,11 +89,10 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         workdir = __getargvalue(argstack, "-w")
         if workdir is not None:
             args["work"] = Path(workdir).resolve()
-            changecurdir(workdir)
 
         outdir = __getargvalue(argstack, "-o")
         if outdir is not None:
-            args["out"] = Path(outdir).resolve()
+            args["out"] = Path(args["work"]).joinpath(Path(outdir))
 
         name = __getargvalue(argstack, "-n")
         if name is not None:
@@ -125,11 +134,6 @@ def printstartmessage(currentdir: Path, tooldir: Path) -> None:
     print()
 
 
-def changecurdir(newdir: str) -> None:
-    rundir = Path(newdir).resolve()
-    os.chdir(rundir)
-
-
 def getscenariopath(scenario: str) -> Path:
     scenariopath = Path(scenario)
     if scenariopath.is_absolute():
@@ -158,7 +162,7 @@ if __name__ == "__main__":
     # テストパス設定
 
     if not Path(testconfig["scenario"]).exists():
-        print("scenario not exists")
+        print(f"scenario not exists {testconfig['scenario']}")
         sys.exit()
 
     bridgepath = getbridgepath(tooldir=tooldir)
@@ -168,7 +172,11 @@ if __name__ == "__main__":
 
     sys.path.append(str(tooldir))  # テストコードの方でvbaunit_libが使えるようになる
 
+    __createoutpudirectory(Path(testconfig["out"]))
+
     # テストスイート
+
+    os.chdir(testconfig["work"])
 
     scenario = TestScenario(Path(str(testconfig["scenario"])))
 
@@ -193,3 +201,5 @@ if __name__ == "__main__":
         bridgepath,
         Path(testconfig["out"]),
     )
+
+    os.chdir(currentdir)

@@ -10,7 +10,7 @@ from util.types import TestSuite, TestModule, TestCase, TestResult
 
 
 def __gettimestampnow() -> str:
-    return datetime.now().isoformat(sep=" ", timespec="milliesconds")
+    return datetime.now().isoformat(sep=" ", timespec="milliseconds")
 
 
 def __writestartlog(testcase: TestCase, f) -> None:

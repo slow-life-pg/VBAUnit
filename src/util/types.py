@@ -146,7 +146,7 @@ class TestModule:
         tc = TestCase(
             testid=self.testid,
             group=self.__group,
-            module=self.__modulepath,
+            module=self,
             testfunction=testfunction,
             subject=subject,
             start_line=start_line,
