@@ -68,7 +68,7 @@ class VBAUnitTestLib:
         else:
             self.__app = None
         self.__book = None
-        self.__internalbookname = ""
+        self.__internalbook = None
 
         self.__comobjects: list[object] = []
 
@@ -104,12 +104,15 @@ class VBAUnitTestLib:
         # 開けなかったらErrorが出ているはずだから独自にthrowしない。
         if self.__book:
             excelfullpath = Path(excelpath).resolve()
-            self.__book.api.VBProject.References.AddFromFile(excelfullpath)
-            self.__internalbookname = excelfullpath.name
+            # self.__book.api.VBProject.References.AddFromFile(excelfullpath)
+            self.__internalbook = self.__app.books.open(excelfullpath)
 
-        return self.__book
+        return self.__internalbook
 
     def closeexcel(self) -> None:
+        if self.__internalbook is not None:
+            self.__internalbook.close()
+            self.__internalbook = None
         if self.__book is not None:
             self.__book.close()
             self.__book = None
@@ -120,7 +123,7 @@ class VBAUnitTestLib:
     def getregexobj(self) -> object:
         """bridgeからRegexを取得"""
         if self.__book:
-            regexobj = self.__app.api.Run("GetRegexp")
+            regexobj = self.__app.api.Run(self.__getbridgemacroname("GetRegexp"))
             self.__comobjects.append(regexobj)
             return regexobj
         else:
@@ -129,7 +132,7 @@ class VBAUnitTestLib:
     def getcollectionobj(self) -> object:
         """bridgeからCollectionを取得"""
         if self.__book:
-            collectionobj = self.__app.api.Run("GetNewCollection")
+            collectionobj = self.__app.api.Run(self.__getbridgemacroname("GetNewCollection"))
             self.__comobjects.append(collectionobj)
             return collectionobj
         else:
@@ -138,7 +141,7 @@ class VBAUnitTestLib:
     def getdictionaryobj(self) -> object:
         """bridgeからDictionaryを取得"""
         if self.__book:
-            dictionaryobj = self.__app.api.Run("GetNewDictionary")
+            dictionaryobj = self.__app.api.Run(self.__getbridgemacroname("GetNewDictionary"))
             self.__comobjects.append(dictionaryobj)
             return dictionaryobj
         else:
@@ -148,7 +151,7 @@ class VBAUnitTestLib:
         """bridgeから取得したオブジェクトを解放"""
         if self.__book:
             if obj:
-                self.__app.api.Run("Free", obj)
+                self.__app.api.Run(self.__getbridgemacroname("Free", obj))
             if obj in self.__comobjects:
                 self.__comobjects.remove(obj)
 
@@ -179,7 +182,7 @@ class VBAUnitTestLib:
             if len(args) <= 16:
                 vbamacro = self.__book.macro("CallMacro")
                 vbargs = list(args)
-                res: list[object] = vbamacro(obj, creation, self.__internalbookname, macro_name, vbargs)
+                res: list[object] = vbamacro(obj, creation, self.__internalbook, macro_name, vbargs)
                 self.__comobjects.append(res)
                 return res
             else:
@@ -188,6 +191,9 @@ class VBAUnitTestLib:
         else:
             print("callmacro: no book has opened")
             return [None]
+
+    def __getbridgemacroname(self, macro: str) -> str:
+        return "VBAUnitCOMBridge.xlsm!" + macro
 
 
 def gettestlib(withapp: bool = False, visible: bool = False) -> VBAUnitTestLib:
