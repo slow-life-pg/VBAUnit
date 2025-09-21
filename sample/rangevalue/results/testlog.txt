@@ -1,0 +1,13 @@
+Test log for VBAUnit 20250921163002
+Subject: VBAUnit Test scenario_rangevalue.xlsx
+Scenario: C:\Dev\VBAUnit\sample\rangevalue\scenario_rangevalue.xlsx
+Output: C:\Dev\VBAUnit\sample\rangevalue\results
+Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
+Started at: 2025-09-21 16:30:02.141
+
+
+Start at: 2025-09-21 16:30:02.147
+{"testid": "A-001", "group": "GroupA", "module": "rangevalue01.py", "function": "test_rangevalue01", "at": "11", "start": "2025-09-21 16:30:02.148"}
+{"outcome": "False", "runned": "2025-09-21 16:31:30.506"}
+
+Finished at: 2025-09-21 16:31:30.508
