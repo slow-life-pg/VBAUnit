@@ -60,6 +60,12 @@ class B:
         self.member = ""
 ....
 
+### ByRefはVariantでなければ「型が一致しません」エラー
+[source, VB]
+....
+Public Sub GetCellValueRef(ByVal row As Integer, ByVal col As Integer, ByRef value As Variant)
+....
+
 ## エラー警告抑制
 ### PyLint
 PyLint:Args

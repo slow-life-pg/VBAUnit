@@ -182,7 +182,7 @@ class VBAUnitTestLib:
             if len(args) <= 16:
                 vbamacro = self.__book.macro("CallMacro")
                 vbargs = list(args)
-                res: list[object] = vbamacro(obj, creation, self.__internalbook, macro_name, vbargs)
+                res: list[object] = vbamacro(obj, creation, self.__internalbook.name, macro_name, vbargs)
                 self.__comobjects.append(res)
                 return res
             else:

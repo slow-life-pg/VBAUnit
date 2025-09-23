@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     print(f"using bridge: {bridgepath}")
 
-    sys.path.append(str(tooldir))  # テストコードの方でvbaunit_libが使えるようになる
+    sys.path.append(str(tooldir.joinpath("src")))  # テストコードの方でvbaunit_libが使えるようになる
 
     __createoutpudirectory(Path(testconfig["out"]))
 
