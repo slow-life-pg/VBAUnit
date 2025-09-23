@@ -8,9 +8,20 @@ sys.path.append(str(srcdir))
 from vbaunit_lib.testlib import gettestlib, expect  # noqa
 
 
-def test_rangevalue01():
+def test_rangevalue01_read():
     testlib = gettestlib()
     with testlib.runapp("test/rangevalue.xlsx") as wb:
         sheet1 = wb.sheets["Sheet1"]
         result = sheet1.range("A1:B1").value
         expect(result == ["A", "B"])
+
+
+def test_rangevalue02_writeread():
+    testlib = gettestlib()
+    with testlib.runapp("test/rangevalue.xlsx") as wb:
+        sheet1 = wb.sheets["Sheet1"]
+        buffer = sheet1["A1:B1"].value
+        sheet2 = wb.sheets["Sheet2"]
+        sheet2["A1"].value = buffer
+        result = sheet2.range("A1:D1").value
+        expect(result == ["A", "B", "C", "D"])

@@ -1,13 +1,15 @@
-Test log for VBAUnit 20250921175933
+Test log for VBAUnit 20250923144938
 Subject: VBAUnit Test scenario_rangevalue.xlsx
 Scenario: C:\Dev\VBAUnit\sample\rangevalue\scenario_rangevalue.xlsx
 Output: C:\Dev\VBAUnit\sample\rangevalue\results
 Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
-Started at: 2025-09-21 17:59:33.481
+Started at: 2025-09-23 14:49:38.558
 
 
-Start at: 2025-09-21 17:59:33.488
-{"testid": "A-001", "group": "GroupA", "module": "rangevalue01.py", "function": "test_rangevalue01", "at": "11", "start": "2025-09-21 17:59:33.490"}
-{"outcome": "True", "runned": "2025-09-21 17:59:47.296"}
+Start at: 2025-09-23 14:49:38.566
+{"testid": "A-001", "group": "GroupA", "module": "rangevalue01.py", "function": "test_rangevalue01_read", "at": "11", "start": "2025-09-23 14:49:38.566"}
+{"outcome": "True", "runned": "2025-09-23 14:49:42.056"}
+{"testid": "A-001", "group": "GroupA", "module": "rangevalue01.py", "function": "test_rangevalue02_writeread", "at": "19", "start": "2025-09-23 14:49:42.056"}
+{"outcome": "True", "runned": "2025-09-23 14:49:45.535"}
 
-Finished at: 2025-09-21 17:59:59.212
+Finished at: 2025-09-23 14:49:45.540
