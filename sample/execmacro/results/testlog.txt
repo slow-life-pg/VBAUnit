@@ -1,0 +1,15 @@
+Test log for VBAUnit 20250923164047
+Subject: VBAUnit Test scenario_callmacro.xlsx
+Scenario: C:\Dev\VBAUnit\sample\callmacro\scenario_callmacro.xlsx
+Output: C:\Dev\VBAUnit\sample\callmacro\results
+Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
+Started at: 2025-09-23 16:40:47.936
+
+
+Start at: 2025-09-23 16:40:47.942
+{"testid": "B-003", "group": "GroupB", "module": "callmacro03.py", "function": "test_lookup01", "at": "4", "start": "2025-09-23 16:40:47.942"}
+{"outcome": "True", "runned": "2025-09-23 16:40:52.910"}
+{"testid": "B-003", "group": "GroupB", "module": "callmacro03.py", "function": "test_lookup02", "at": "13", "start": "2025-09-23 16:40:52.912"}
+{"outcome": "True", "runned": "2025-09-23 16:40:58.300"}
+
+Finished at: 2025-09-23 16:40:58.300
