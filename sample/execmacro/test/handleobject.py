@@ -25,3 +25,20 @@ def test_handling_dictionary():
 
         expectation = {1: "太郎", 2: "次郎", 3: "花子"}
         expect_dictionary(dic, expectation)
+
+
+def test_handling_toomuch():
+    testlib = gettestlib()
+    objcount = 0
+    with testlib.runapp("test/handleobject.xlsm"):
+        for i in range(50):
+            dic = testlib.getdictionaryobj()
+            testlib.callmacro(None, "FillDictionary", dic)
+            objcount += 1
+
+        for i in range(50):
+            dic = testlib.getcollectionobj()
+            testlib.callmacro(None, "FillCollection", dic)
+            objcount += 1
+
+    expect(objcount == 100)

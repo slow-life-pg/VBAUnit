@@ -279,7 +279,7 @@ class VBAUnitTestLib:
         """bridgeから取得したオブジェクトを解放"""
         if self.__book:
             if obj:
-                self.__app.api.Run(self.__getbridgemacroname("Free", obj))
+                self.__app.api.Run(self.__getbridgemacroname("Free"), obj)
             if obj in self.__comobjects:
                 self.__comobjects.remove(obj)
             obj = None
@@ -319,7 +319,7 @@ class VBAUnitTestLib:
                 vbamacro = self.__book.macro("CallMacro")
                 vbargs = list(args)
                 res: list[object] = vbamacro(obj, creation, self.__internalbook.name, macro_name, vbargs)
-                self.__comobjects.append(res)
+                # self.__comobjects.append(res) # 呼び出し結果は登録すると解放できなくなるので登録しない
                 return res
             else:
                 print(f"callmacro: too many macro arguments {len(args)}. Must be <= 16.")

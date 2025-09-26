@@ -1,15 +1,17 @@
-Test log for VBAUnit 20250926184642
+Test log for VBAUnit 20250926222141
 Subject: VBAUnit Test scenario_execmacro.xlsx
 Scenario: C:\Dev\VBAUnit\sample\execmacro\scenario_execmacro.xlsx
 Output: C:\Dev\VBAUnit\sample\execmacro\results
 Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
-Started at: 2025-09-26 18:46:42.265
+Started at: 2025-09-26 22:21:41.468
 
 
-Start at: 2025-09-26 18:46:42.271
-{"testid": "B-004", "group": "GroupB", "module": "handleobject.py", "function": "test_handling_collection", "at": "4", "start": "2025-09-26 18:46:42.272"}
-{"outcome": "True", "runned": "2025-09-26 18:46:45.752"}
-{"testid": "B-004", "group": "GroupB", "module": "handleobject.py", "function": "test_handling_dictionary", "at": "18", "start": "2025-09-26 18:46:45.752"}
-{"outcome": "True", "runned": "2025-09-26 18:46:48.615"}
+Start at: 2025-09-26 22:21:41.473
+{"testid": "B-004", "group": "GroupB", "module": "handleobject.py", "function": "test_handling_collection", "at": "4", "start": "2025-09-26 22:21:41.473"}
+{"outcome": "True", "runned": "2025-09-26 22:21:43.787"}
+{"testid": "B-004", "group": "GroupB", "module": "handleobject.py", "function": "test_handling_dictionary", "at": "18", "start": "2025-09-26 22:21:43.787"}
+{"outcome": "True", "runned": "2025-09-26 22:21:45.821"}
+{"testid": "B-004", "group": "GroupB", "module": "handleobject.py", "function": "test_handling_toomuch", "at": "30", "start": "2025-09-26 22:21:45.823"}
+{"outcome": "True", "runned": "2025-09-26 22:21:48.299"}
 
-Finished at: 2025-09-26 18:46:48.616
+Finished at: 2025-09-26 22:21:48.299
