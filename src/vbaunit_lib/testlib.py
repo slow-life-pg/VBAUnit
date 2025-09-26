@@ -1,7 +1,11 @@
 import inspect
+import psutil
+import gc
 from functools import wraps
 from pathlib import Path
 from contextlib import contextmanager
+from win32com.client import VARIANT
+import pythoncom
 import xlwings as xl
 
 __globalbridgepath = Path(__file__).parent
@@ -20,6 +24,107 @@ def expect(requirement: bool, msg: str = "") -> None:
     # その行のソースコードを取得（存在する場合）
     src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
     raise AssertionError(f"Check failed at {info.filename}:{info.lineno}\n  -> {src_line}" + (f"\n  msg: {msg}" if msg else ""))
+
+
+def expect_collection(collectionobj: object, key: str, expectation: object, msg: str = "") -> None:
+    """Collectionオブジェクトのキーに対応する期待値を検証する関数。keyから値を取得してexpectationと比較する。"""
+    variantkey = VARIANT(pythoncom.VT_BSTR, key)
+    valueofkey = collectionobj.Item(variantkey)  # type: ignore
+    if valueofkey == expectation:
+        return
+
+    frame = inspect.currentframe()
+    if frame is None or frame.f_back is None:
+        raise AssertionError("Could not inspect caller frame")
+    caller = frame.f_back
+    info = inspect.getframeinfo(caller)
+    # その行のソースコードを取得（存在する場合）
+    src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
+    raise AssertionError(f"Check failed at {info.filename}:{info.lineno}\n  -> {src_line}" + (f"\n  msg: {msg}" if msg else ""))
+
+
+def expect_collection_list(collectionobj: object, expectation: list[object], msg: str = "") -> None:
+    """Collectionオブジェクトとexpectationの全要素が順序を含めて一致することを確認する。"""
+    frame = inspect.currentframe()
+    if frame is None or frame.f_back is None:
+        raise AssertionError("Could not inspect caller frame")
+    caller = frame.f_back
+    info = inspect.getframeinfo(caller)
+    # その行のソースコードを取得（存在する場合）
+    src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
+
+    if collectionobj.Count() != len(expectation):  # type: ignore
+        raise AssertionError(
+            f"Check failed: collection count {collectionobj.Count()} != expectation count {len(expectation)}"  # type: ignore
+            + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
+            + (f"\n  msg: {msg}" if msg else "")
+        )
+    for i in range(1, collectionobj.Count() + 1):  # type: ignore
+        valueofkey = collectionobj.Item(i)  # type: ignore
+        if valueofkey != expectation[i - 1]:
+            raise AssertionError(
+                f"Check failed: collection item {i} value {valueofkey} != expectation value {expectation[i - 1]}"  # type: ignore
+                + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
+                + (f"\n  msg: {msg}" if msg else "")
+            )
+    # どこにも筆禍からなければ成功
+    return
+
+
+def expect_collection_dict(collectionobj: object, expectation: dict[str, object], msg: str = "") -> None:
+    """Collectionオブジェクトとexpectationのキーと値のペアが、一致することを確認する。"""
+    frame = inspect.currentframe()
+    if frame is None or frame.f_back is None:
+        raise AssertionError("Could not inspect caller frame")
+    caller = frame.f_back
+    info = inspect.getframeinfo(caller)
+    # その行のソースコードを取得（存在する場合）
+    src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
+
+    if collectionobj.Count() != len(expectation):  # type: ignore
+        raise AssertionError(
+            f"Check failed: collection count {collectionobj.Count()} != expectation count {len(expectation)}"  # type: ignore
+            + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
+            + (f"\n  msg: {msg}" if msg else "")
+        )
+    for key in expectation.keys():
+        valueofkey = collectionobj.Item(key)  # type: ignore
+        if valueofkey != expectation[key]:
+            raise AssertionError(
+                f"Check failed: collection item {key} value {valueofkey} != expectation value {expectation[key]}"  # type: ignore
+                + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
+                + (f"\n  msg: {msg}" if msg else "")
+            )
+    # どこにも筆禍からなければ成功
+    return
+
+
+def expect_dictionary(dictionaryobj: object, expectation: dict[object, object], msg: str = "") -> None:
+    """Dictionaryオブジェクトとexpectationのキーと値のペアが、一致することを確認する。"""
+    frame = inspect.currentframe()
+    if frame is None or frame.f_back is None:
+        raise AssertionError("Could not inspect caller frame")
+    caller = frame.f_back
+    info = inspect.getframeinfo(caller)
+    # その行のソースコードを取得（存在する場合）
+    src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
+
+    if dictionaryobj.Count != len(expectation):  # type: ignore
+        raise AssertionError(
+            f"Check failed: dictionary count {dictionaryobj.Count} != expectation count {len(expectation)}"  # type: ignore
+            + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
+            + (f"\n  msg: {msg}" if msg else "")
+        )
+    for key in expectation.keys():
+        valueofkey = dictionaryobj.Item(key)  # type: ignore
+        if valueofkey != expectation[key]:
+            raise AssertionError(
+                f"Check failed: dictionary item {key} value {valueofkey} != expectation value {expectation[key]}"  # type: ignore
+                + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
+                + (f"\n  msg: {msg}" if msg else "")
+            )
+    # どこにも筆禍からなければ成功
+    return
 
 
 def description(subject: str):
@@ -72,6 +177,8 @@ class VBAUnitTestLib:
 
         self.__comobjects: list[object] = []
 
+        self.__pid = -1
+
     @property
     def appready(self) -> bool:
         return self.__app is not None
@@ -85,18 +192,39 @@ class VBAUnitTestLib:
             self.exitapp()
 
     def exitapp(self) -> None:
-        self.closeexcel()
-        self.__closeapp()
+        try:
+            self.freeobjs()
+        finally:
+            self.closeexcel()
+            self.__closeapp()
 
     def __closeapp(self) -> None:
         if self.__app is not None:
             self.__app.quit()
             self.__app = None
+            self.__killserver()
+
+    def __killserver(self) -> None:
+        if self.__pid > 0:
+            try:
+                p = psutil.Process(self.__pid)
+            except psutil.NoSuchProcess:
+                self.__pid = -1
+                return
+            try:
+                p.terminate()
+                p.wait(3)
+            except Exception as e:
+                print(f"Could not kill Excel process {self.__pid}: {e}")
+            finally:
+                self.__pid = -1
 
     def openexcel(self, excelpath: str) -> xl.Book:
         # Excelファイルを開く処理を実装
         if self.__app is None:
             self.__app = xl.App(visible=self.__visible)
+        self.__pid = self.__app.pid
+
         self.__app.display_alerts = False
         # self.__app.screen_updating = False
 
@@ -154,14 +282,22 @@ class VBAUnitTestLib:
                 self.__app.api.Run(self.__getbridgemacroname("Free", obj))
             if obj in self.__comobjects:
                 self.__comobjects.remove(obj)
+            obj = None
 
     def freeobjs(self) -> None:
         """bridgeから取得した全てのオブジェクトを解放"""
         if self.__book:
             freemacro = self.__book.macro("Free")
             for obj in self.__comobjects:
-                freemacro(obj)
+                # 全削除の時は既に解放済みかもしれない
+                try:
+                    freemacro(obj)
+                except Exception as e:
+                    print(f"freeobjs error: {e}")
+                    print("  skip this object")
+                obj = None
             self.__comobjects.clear()
+            gc.collect()
 
     def callmacro(self, obj: object, macro_name: str, *args) -> list[object]:
         return self.__callmacro(obj, False, macro_name, *args)
