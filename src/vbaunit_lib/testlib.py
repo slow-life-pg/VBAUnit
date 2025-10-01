@@ -319,7 +319,7 @@ class VBAUnitTestLib:
                 vbamacro = self.__book.macro("CallMacro")
                 vbargs = list(args)
                 res: list[object] = vbamacro(obj, creation, self.__internalbook.name, macro_name, vbargs)
-                # self.__comobjects.append(res) # 呼び出し結果は登録すると解放できなくなるので登録しない
+                # self.__comobjects.append(res) # 呼び出し結果はスコープを抜けると解放されるので登録しない
                 return res
             else:
                 print(f"callmacro: too many macro arguments {len(args)}. Must be <= 16.")
