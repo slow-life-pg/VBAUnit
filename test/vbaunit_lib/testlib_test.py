@@ -168,6 +168,52 @@ def test_object_byref():
         assert res2[2] == 9
 
 
+def test_dynamic_object_create():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/DynamicObject.xlsm"):
+        obj = testlib.create_newinstance("Class1")
+        assert obj is not None
+
+
+def test_dynamic_object_directcall():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/DynamicObject.xlsm"):
+        obj = testlib.create_newinstance("Class1")
+        assert obj is not None
+
+        obj.SetMessage("dynamic object")
+        assert obj.GetMessage() == "dynamic object"
+
+
+def test_dynamic_object_callmacro():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/DynamicObject.xlsm"):
+        obj = testlib.create_newinstance("Class1")
+        assert obj is not None
+
+        testlib.callmacro(obj, "SetMessage", "dynamic object")
+        res_class = testlib.callmacro(obj, "GetMessage")
+        assert res_class[0] == "dynamic object"
+
+
+def test_dynamic_object_pass():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/DynamicObject.xlsm"):
+        obj = testlib.create_newinstance("Class1")
+        assert obj is not None
+
+        obj.SetMessage("dynamic object")
+        res = testlib.callmacro(None, "GetObjectValue", obj)
+        assert res[0] == "Message: dynamic object"
+
+        res = testlib.callmacro(None, "GetValueLength", obj)
+        assert res[0] == 14
+
+
 def test_assertion_pass():
     from vbaunit_lib.testlib import expect
 

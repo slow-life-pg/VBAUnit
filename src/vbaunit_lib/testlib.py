@@ -331,6 +331,28 @@ class VBAUnitTestLib:
     def __getbridgemacroname(self, macro: str) -> str:
         return "VBAUnitCOMBridge.xlsm!" + macro
 
+    def create_newinstance(self, class_name: str) -> object:
+        """bridgeから指定されたClassモジュールのインスタンスを取得"""
+        if self.__book:
+            temp_component = self.__internalbook.api.VBProject.VBComponents.Add(1)  # 1:標準モジュール
+
+            tempcode = (
+                f"Public Function GetInstanceOf__{class_name}() As Variant\n"
+                + f"    Set GetInstanceOf__{class_name} = New {class_name}\n"
+                + "End Function\n"
+            )
+            temp_component.CodeModule.AddFromString(tempcode)
+            create_modulename = f"{temp_component.Name}.GetInstanceOf__{class_name}"
+            createmacro = self.__internalbook.macro(create_modulename)
+            instance = createmacro()
+            self.registercomobject(instance)
+
+            self.__internalbook.api.VBProject.VBComponents.Remove(temp_component)
+
+            return instance
+        else:
+            return None
+
 
 def gettestlib(withapp: bool = False, visible: bool = False) -> VBAUnitTestLib:
     return VBAUnitTestLib(__globalbridgepath, withapp=withapp, visible=visible)
