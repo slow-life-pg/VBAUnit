@@ -163,6 +163,9 @@ def getglobalbridgepath() -> Path:
 
 
 class VBAUnitTestLib:
+    __VBEXT_CT_STDMODULE = 1  # 標準モジュール
+    __VBEXT_CT_CLASSMODULE = 2  # クラスモジュール
+
     def __init__(self, __globalbridgepath: Path, withapp: bool = True, visible: bool = False) -> None:
         self.__bridgepath = __globalbridgepath
         self.__withapp = withapp
@@ -352,6 +355,22 @@ class VBAUnitTestLib:
             return instance
         else:
             return None
+
+    def create_backdoor(self, module_name: str, code: str) -> None:
+        """指定された標準モジュールまたはクラスモジュールに関数を追加する"""
+        if self.__book:
+            target_component = None
+            for comp in self.__internalbook.api.VBProject.VBComponents:
+                if comp.Name == module_name and comp.Type in (VBAUnitTestLib.__VBEXT_CT_STDMODULE, VBAUnitTestLib.__VBEXT_CT_CLASSMODULE):
+                    target_component = comp
+                    break
+            if target_component is None:
+                print(f"create_backdoor: module {module_name} not found")
+                return
+
+            code_module = target_component.CodeModule
+            lastline = code_module.CountOfLines
+            code_module.InsertLines(lastline + 1, code)
 
 
 def gettestlib(withapp: bool = False, visible: bool = False) -> VBAUnitTestLib:

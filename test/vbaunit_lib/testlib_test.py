@@ -214,6 +214,35 @@ def test_dynamic_object_pass():
         assert res[0] == 14
 
 
+def test_backdoor_standardmodule():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/Backdoor.xlsm"):
+        newcode = """
+Public Function GetStandarddMessage() As String
+    GetStandarddMessage = GetMessage("create backdoor")
+End Function
+"""
+        testlib.create_backdoor("Module1", newcode)
+        res = testlib.callmacro(None, "GetStandarddMessage")
+        assert res[0] == "Standard: create backdoor"
+
+
+def test_backdoor_classmodule():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/Backdoor.xlsm"):
+        newcode = """
+Public Function GetStandarddMessage() As String
+    GetStandarddMessage = GetMessage("create backdoor")
+End Function
+"""
+        testlib.create_backdoor("Class1", newcode)
+        obj = testlib.create_newinstance("Class1")
+        res = testlib.callmacro(obj, "GetStandarddMessage")
+        assert res[0] == "Class: create backdoor"
+
+
 def test_assertion_pass():
     from vbaunit_lib.testlib import expect
 
