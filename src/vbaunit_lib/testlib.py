@@ -1,3 +1,4 @@
+from collections.abc import Generator
 import inspect
 import psutil
 import gc
@@ -187,7 +188,7 @@ class VBAUnitTestLib:
         return self.__app is not None
 
     @contextmanager
-    def runapp(self, excelpath: str):
+    def runapp(self, excelpath: str) -> Generator[xl.Book, None, None]:
         try:
             book = self.openexcel(excelpath)
             yield book
