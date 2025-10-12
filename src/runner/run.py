@@ -1,10 +1,12 @@
 from pathlib import Path
 import shutil
 import json
+import time
 from datetime import datetime
 from openpyxl import load_workbook
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
+import pywintypes
 from natsort import natsort_keygen
 from util.types import TestSuite, TestModule, TestCase, TestResult
 
@@ -102,10 +104,27 @@ def __runtestsuite(
     for testcase in suite:
         __writestartlog(testcase=testcase, f=f)
 
-        try:
-            result = __runtestcase(testcase=testcase, f=f)
-        except Exception as e:
-            print(f"Runtime error: {e}")
+        result = None
+        comerror_retrycount = 0
+        while comerror_retrycount < 3:
+            try:
+                result = __runtestcase(testcase=testcase, f=f)
+                break
+            except pywintypes.com_error as ce:
+                print(type(ce))
+                print(f"COM error: {ce}")
+                if comerror_retrycount < 3:
+                    comerror_retrycount += 1
+                    print(f"Retrying... ({comerror_retrycount} / 3)")
+                    time.sleep(1)  # Wait for a second before retrying
+                else:
+                    result = __createresult(testcase=testcase, succeeded=False)
+            except Exception as e:
+                print(type(e))
+                print(f"Runtime error: {e}")
+                result = __createresult(testcase=testcase, succeeded=False)
+
+        if result is None:
             result = __createresult(testcase=testcase, succeeded=False)
 
         __writeendlog(result=result, f=f)
