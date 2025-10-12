@@ -1,5 +1,11 @@
 .env/*
 ~$*
+*.log
+*.out
+*.gz
+*.fls
+*.fdb_latexmk
+*.aux
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
