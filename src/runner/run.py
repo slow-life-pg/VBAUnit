@@ -123,6 +123,7 @@ def __runtestsuite(
                 print(type(e))
                 print(f"Runtime error: {e}")
                 result = __createresult(testcase=testcase, succeeded=False)
+                break
 
         if result is None:
             result = __createresult(testcase=testcase, succeeded=False)
