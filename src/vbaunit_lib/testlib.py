@@ -1,5 +1,6 @@
 from collections.abc import Generator
 import inspect
+from typing import overload
 import psutil
 import gc
 from functools import wraps
@@ -190,10 +191,12 @@ class VBAUnitTestLib:
     @contextmanager
     def runapp(self, excelpath: str) -> Generator[xl.Book, None, None]:
         try:
+            pythoncom.CoInitialize()
             book = self.openexcel(excelpath)
             yield book
         finally:
             self.exitapp()
+            pythoncom.CoUninitialize()
 
     def exitapp(self) -> None:
         try:
@@ -276,6 +279,29 @@ class VBAUnitTestLib:
             dictionaryobj = self.__app.api.Run(self.__getbridgemacroname("GetNewDictionary"))
             self.__comobjects.append(dictionaryobj)
             return dictionaryobj
+        else:
+            return None
+
+    @overload
+    def getdynamicarray(self, low1: int, high1: int) -> list[object]: ...
+
+    @overload
+    def getdynamicarray(self, low1: int, high1: int, low2: int, high2: int) -> list[list[object]]: ...
+
+    @overload
+    def getdynamicarray(self, low1: int, high1: int, low2: int, high2: int, low3: int, high3: int) -> list[list[list[object]]]: ...
+
+    def getdynamicarray(self, low1: int, high1: int, low2: int = 0, high2: int = 0, low3: int = 0, high3: int = 0) -> object:
+        """bridgeから1～3次元の動的配列を取得"""
+        if self.__book:
+            if low3 == 0 and high3 == 0:
+                if low2 == 0 and high2 == 0:
+                    dynamicarray = self.__app.api.Run(self.__getbridgemacroname("GetOneDimensionalArray"), low1, high1)
+                else:
+                    dynamicarray = self.__app.api.Run(self.__getbridgemacroname("GetTwoDimensionalArray"), low1, high1, low2, high2)
+            else:
+                dynamicarray = self.__app.api.Run(self.__getbridgemacroname("GetThreeDimensionalArray"), low1, high1, low2, high2, low3, high3)
+            return dynamicarray
         else:
             return None
 

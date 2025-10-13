@@ -214,6 +214,39 @@ def test_dynamic_object_pass():
         assert res[0] == 14
 
 
+def test_dynamicarray_onedim():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/DynamicObject.xlsm"):
+        arr = testlib.getdynamicarray(1, 5)
+        assert arr is not None
+        assert len(arr) == 5
+
+
+def test_dynamicarray_twodim():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/DynamicObject.xlsm"):
+        arr = testlib.getdynamicarray(1, 3, 1, 4)
+        assert arr is not None
+        assert len(arr) == 3
+        for i in range(3):
+            assert len(arr[i]) == 4
+
+
+def test_dynamicarray_threedim():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/DynamicObject.xlsm"):
+        arr = testlib.getdynamicarray(1, 3, 1, 4, 1, 2)
+        assert arr is not None
+        assert len(arr) == 3
+        for i in range(3):
+            assert len(arr[i]) == 4
+            for j in range(4):
+                assert len(arr[i][j]) == 2
+
+
 def test_backdoor_standardmodule():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
