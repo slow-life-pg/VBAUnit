@@ -347,8 +347,7 @@ class VBAUnitTestLib:
         if self.__book:
             if len(args) <= 16:
                 vbamacro = self.__book.macro("CallMacro")
-                vbargs = list(args)
-                res: list[object] = vbamacro(obj, creation, self.__internalbook.name, macro_name, vbargs)
+                res: list[object] = vbamacro(obj, creation, self.__internalbook.name, macro_name, args)
                 # self.__comobjects.append(res) # 呼び出し結果はスコープを抜けると解放されるので登録しない
                 return res
             else:
