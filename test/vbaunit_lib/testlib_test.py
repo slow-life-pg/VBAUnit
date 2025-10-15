@@ -1,10 +1,5 @@
 from pathlib import Path
-from vbaunit_lib.testlib import (
-    setglobalbridgepath,
-    getglobalbridgepath,
-    gettestlib,
-    VBAUnitTestLib,
-)
+from vbaunit_lib.testlib import setglobalbridgepath, getglobalbridgepath, gettestlib, VBAUnitTestLib, description
 
 
 def test_globalbridgepath():
@@ -126,6 +121,32 @@ def test_callmacro_createobject():
         assert res[1] == 0
         comobj = res[0]
         assert comobj is not None
+
+
+@description("CallMacro with list and value argument")
+def test_callmacro_listandvalue():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        a = ["1", "2"]
+        res = testlib.callmacro(None, "GetMessageFromArrayAndValue", a, 2)
+        print(f"Error: {res[3]} {res[4]}")
+        assert len(res) == 5
+        assert res[0] == "Message: 1 2"
+
+
+@description("CallMacro with just multiple list argument")
+def test_callmacro_lists():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/CallMacro.xlsm"):
+        a1 = [["1", "2"], ["3", "4"]]
+        a2 = ["a", "b"]
+        a3 = ["c", "d"]
+        res = testlib.callmacro(None, "GetMessageFromArrays", a1, a2, a3)
+        print(f"Error: {res[4]} {res[5]}")
+        assert len(res) == 6
+        assert res[0] == "Message: 1 a c"
 
 
 def test_object_property():

@@ -1,0 +1,84 @@
+# Number Place game solver specification
+author::SLow Life Programmer
+revnumber::0.1
+
+## Summary
+This document specifies the requirements for a number place game solver.
+
+It is implemented in VBA and tested with VBAUnit.
+
+## Overview
+This solver takes a number place puzzle as input, and outputs the solved puzzle.
+The input puzzle is represented as a 9x9 grid, where empty cells are denoted by 0.
+
+It solves the puzzle using a heuristic backtracking algorithm.
+As a heuristic, it fills in the cells starting from those with the fewest possible candidates.
+For each cell, it sums the number of candidates determined from its row, column, and block constraints,
+and then randomly selects one of the cells with the smallest number of candidates.
+
+## Requirements
+### Functional Requirements
+#### Input
+The solver should accept a 9x9 grid representing the number place puzzle.
+Empty cells are represented by 0.
+
+The puzzle should be written in the range A1:I9 on the sheet named “puzzle”.
+The solver should ignore any values written outside of this range.
+
+#### Output
+The solver should output the solved puzzle in the same 9x9 grid format.
+The solved puzzle should be written in the range A1:I9 on the sheet named “solution”.
+
+If the puzzle has no solution, the solver should output an appropriate message in cell K1 of the "solution" sheet.
+If the puzzle has multiple solutions, the solver should output one of the valid solutions and display a message box indicating that multiple solutions exist.
+
+#### Solving Algorithm
+As long as the performance requirements are met, the choice of algorithm is unrestricted.
+In principle, the puzzle should be solved through heuristic backtracking.
+
+The algorithm should be replaceable at any time.
+
+### Non-Functional Requirements
+#### Performance
+The solver should be able to solve a standard 9x9 number place puzzle in under 10 milliseconds on typical hardware.
+
+#### Usability
+The solver should provide clear error messages for invalid inputs, such as puzzles with no solution or multiple solutions.
+
+#### Maintainability
+The code should be flexible for future algorithmic modifications.
+
+## Design Concepts
+The solver is designed with modularity in mind, allowing for easy updates and changes to the solving algorithm. Key design concepts include:
+
+- **Encapsulation**: The solver's logic is encapsulated within a single module, promoting separation of concerns.
+- **Heuristic Approach**: The use of heuristics allows the solver to make informed decisions during the solving process, improving efficiency.
+- **Backtracking**: The backtracking algorithm provides a systematic way to explore potential solutions, ensuring all possibilities are considered.
+
+### Logic Difficulty
+The solver is intentionally implemented with a more complex logic than necessary.
+The purpose of this sample is to demonstrate the flexibility and expressiveness of testing, and the complexity of the logic provides an opportunity to implement equally challenging tests.
+
+## Basic Design
+The solver is implemented in VBA, with the main logic encapsulated in a standard module named `NumberPlaceSolver`.
+The module provides methods for setting the input puzzle, solving it, and retrieving the solution.
+
+The solver reads the puzzle from the "puzzle" sheet and writes the solution to the "solution" sheet.
+The main methods of the `NumberPlaceSolver` module are as follows:
+- `SetPuzzle(puzzle As Variant)`: Accepts a 2D array representing the puzzle.
+- `Solve() As Boolean`: Attempts to solve the puzzle, returning True if successful, False otherwise.
+- `GetSolution() As Variant`: Returns the solved puzzle as a 2D array.
+- `GetErrorMessage() As String`: Returns an error message if the puzzle could not be solved.
+
+The solver is invoked from a button at the "puzzle" sheet.
+After the solver finishes processing, the “solution” sheet is activated.
+
+## Testing
+The solver is tested using VBAUnit, with test cases covering various scenarios, including:
+- Valid puzzles with unique solutions.
+- Valid puzzles with multiple solutions.
+- Invalid puzzles with no solutions.
+- Edge cases, such as puzzles with minimal clues.
+
+## Future Work
+I hope that in the future I can implement more advanced solving techniques to improve performance.

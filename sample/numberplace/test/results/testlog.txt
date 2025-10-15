@@ -1,0 +1,17 @@
+Test log for VBAUnit 20251015201047
+Subject: VBAUnit Test scenario_nps.xlsx
+Scenario: C:\Dev\VBAUnit\sample\numberplace\test\scenario_nps.xlsx
+Output: C:\Dev\VBAUnit\sample\numberplace\test\results
+Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
+Started at: 2025-10-15 20:10:47.641
+
+
+Start at: 2025-10-15 20:10:47.645
+{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockcandidates_1_1", "at": "59", "start": "2025-10-15 20:10:47.646"}
+{"outcome": "True", "runned": "2025-10-15 20:10:52.471"}
+{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockcandidates_2_3", "at": "79", "start": "2025-10-15 20:10:52.473"}
+{"outcome": "True", "runned": "2025-10-15 20:10:57.111"}
+{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockscandidates", "at": "99", "start": "2025-10-15 20:10:57.111"}
+{"outcome": "True", "runned": "2025-10-15 20:11:01.645"}
+
+Finished at: 2025-10-15 20:11:01.645

@@ -1,0 +1,156 @@
+% !TeX program = lualatex
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=25mm}
+
+% argmin: subscript applies only to "min"
+\newcommand{\argmin}{\operatorname{arg}\,\min}
+
+\title{Mathematical Formalization of the Number Place Solving Algorithm}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper presents a formal mathematical formulation of a backtracking-based algorithm for solving the Number Place (Sudoku) puzzle.
+The algorithm is modeled as a constraint satisfaction problem (CSP), and the process of candidate generation, constraint propagation, and backtracking search is rigorously described.
+\end{abstract}
+
+\section{Problem Formulation}
+
+\subsection{Grid and Variables}
+Let \(I = \{1, \dots, 9\}\) be the set of row and column indices.
+Each cell of the \(9 \times 9\) grid is represented by a variable \(X_{r,c}\), where \(r, c \in I\).
+The collection of all variables is
+\[
+\mathcal{V} = \{ X_{r,c} \mid r, c \in I \}.
+\]
+Given digits (the clues) are represented by the set
+\[
+\mathrm{Givens} \subseteq I \times I \times I,
+\]
+and the initial domain of each variable is defined as
+\[
+D_{r,c}^{(0)} =
+\begin{cases}
+\{v\} & \text{if } (r,c,v) \in \mathrm{Givens},\\[4pt]
+\{1, \dots, 9\} & \text{otherwise.}
+\end{cases}
+\]
+
+\subsection{Block Structure}
+Define the block index functions \(B(r) = \lceil r/3 \rceil\) and \(B(c) = \lceil c/3 \rceil\).
+Each \(3 \times 3\) block is represented as
+\[
+\mathrm{Blk}(b_r,b_c) = \{ (r,c) \in I^2 \mid B(r)=b_r,\, B(c)=b_c \}.
+\]
+
+\subsection{Constraints}
+The CSP is subject to the following constraints:
+\begin{align*}
+&\text{(Row constraint)}   && \forall r, v:\ |\{c \mid X_{r,c}=v\}| \le 1, \\
+&\text{(Column constraint)}&& \forall c, v:\ |\{r \mid X_{r,c}=v\}| \le 1, \\
+&\text{(Block constraint)} && \forall b_r,b_c,v:\ |\{(r,c)\in \mathrm{Blk}(b_r,b_c) \mid X_{r,c}=v\}| \le 1, \\
+&\text{(Domain constraint)}&& \forall r,c:\ X_{r,c} \in \{1,\dots,9\}.
+\end{align*}
+
+\section{Constraint Propagation and Candidate Refinement}
+
+\subsection{State Representation}
+At any stage \(t\), the algorithm maintains a family of candidate domains
+\[
+\mathcal{D}^{(t)} = \{ D_{r,c}^{(t)} \subseteq \{1, \dots, 9\} \}_{r,c \in I}.
+\]
+A \emph{satisfied state} occurs when all \(D_{r,c}^{(t)}\) are singletons and all constraints are satisfied.
+If any \(D_{r,c}^{(t)} = \varnothing\), the state is inconsistent.
+
+\subsection{Forward Elimination}
+When a cell \((r,c)\) is assigned \(v\), the candidate sets are updated as:
+\begin{align*}
+D_{r,c'} &\gets D_{r,c'} \setminus \{v\}, && \forall c' \neq c,\\
+D_{r',c} &\gets D_{r',c} \setminus \{v\}, && \forall r' \neq r,\\
+D_{r',c'} &\gets D_{r',c'} \setminus \{v\}, && \forall (r',c') \in \mathrm{Blk}(B(r),B(c)),\ (r',c')\neq(r,c).
+\end{align*}
+If any domain becomes a singleton, its unique value is immediately propagated using the same rule (this corresponds to forward checking).
+
+\subsection{Block-Based Candidate Initialization}
+For each block \(\mathrm{Blk}(b_r,b_c)\), define the set of unused digits:
+\[
+U_{b_r,b_c} = \{1,\dots,9\} \setminus \{ X_{r,c} \mid (r,c)\in \mathrm{Blk}(b_r,b_c), |D_{r,c}|=1 \}.
+\]
+Each undecided cell in the block initially receives candidates from \(U_{b_r,b_c}\), which are then refined by removing digits already present in the same row or column.
+
+\subsection{Unique Occurrence Rule}
+For each block (and analogously for rows and columns), define
+\[
+S_v = \{ (r,c) \in \mathrm{Blk}(b_r,b_c) \mid v \in D_{r,c} \}.
+\]
+If \(|S_v|=1\), the value \(v\) is fixed at that cell.  
+This rule corresponds to identifying \emph{hidden singles}.
+
+\section{Search and Backtracking}
+
+\subsection{Variable Selection}
+Let \(U = \{(r,c) \mid |D_{r,c}| > 1\}\) be the set of unsolved cells.
+The algorithm selects the variable with the fewest candidates (Minimum Remaining Values heuristic):
+\[
+(r^{*}, c^{*}) \in \argmin_{(r,c)\in U} |D_{r,c}|.
+\]
+If multiple cells share the same minimal size, one is chosen at random.
+
+\subsection{Backtracking and Forward Checking}
+For each \(v \in D_{r^{*},c^{*}}\), assign \(X_{r^{*},c^{*}}=v\) and apply constraint propagation to obtain an updated domain family \(\mathcal{D}'\).
+If any domain becomes empty, the branch fails and the algorithm tries the next candidate.
+Otherwise, recursion continues on \(\mathcal{D}'\).
+
+\subsection{Termination}
+If all domains become singletons, a valid solution is found.
+If all candidates have been tested and failed, the algorithm backtracks to the previous step.
+To detect multiple solutions, the search would continue beyond the first solution, which is omitted in the present version.
+
+\section{Formal Algorithm}
+
+\begin{algorithm}[h!]
+\caption{Recursive Sudoku Solver}
+\begin{algorithmic}[1]
+\Function{Solve}{$\mathcal{D}$}
+    \State \Call{Propagate}{$\mathcal{D}$}  \Comment{Apply rules in Sections 2.2–2.4}
+    \If{$\exists (r,c): D_{r,c} = \varnothing$} \State \Return FAIL \EndIf
+    \If{$\forall (r,c): |D_{r,c}|=1$} \State \Return $\mathcal{D}$ \Comment{Solution found} \EndIf
+    \State Select $(r^{*}, c^{*}) = \argmin_{(r,c): |D_{r,c}|>1} |D_{r,c}|$
+    \ForAll{$v \in D_{r^{*},c^{*}}$}
+        \State $\mathcal{D}' \gets \text{Clone}(\mathcal{D})$
+        \State $D'_{r^{*},c^{*}} \gets \{v\}$
+        \State $R \gets$ \Call{Solve}{$\mathcal{D}'$}
+        \If{$R \neq \text{FAIL}$} \State \Return $R$ \EndIf
+    \EndFor
+    \State \Return FAIL
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section{Correctness and Complexity}
+
+\subsection{Soundness}
+Each propagation step (row, column, and block elimination) removes only values inconsistent with the Sudoku constraints.
+Thus, any solution found by the algorithm satisfies all constraints.
+
+\subsection{Completeness}
+Because every unassigned cell is eventually tested with all possible candidates through backtracking, any existing solution will eventually be discovered.
+
+\subsection{Computational Complexity}
+In the worst case, the search tree has branching factor at most \(9\) and depth up to \(81\), yielding \(O(9^{81})\) complexity.
+However, constraint propagation and MRV selection drastically reduce the effective search space in practice.
+
+\section{Conclusion}
+We have presented a formal description of the Number Place solving process as a constraint satisfaction problem with heuristic-guided backtracking.
+This formulation enables both theoretical analysis and efficient implementation.
+
+\end{document}
