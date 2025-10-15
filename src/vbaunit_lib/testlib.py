@@ -28,6 +28,27 @@ def expect(requirement: bool, msg: str = "") -> None:
     raise AssertionError(f"Check failed at {info.filename}:{info.lineno}\n  -> {src_line}" + (f"\n  msg: {msg}" if msg else ""))
 
 
+def expect_equals(expectation: object, actual: object, msg: str = "") -> None:
+    """期待値を検証する関数。expectationがactualと等しい場合は成功、そうでなければ失敗とする。"""
+    if expectation == actual:
+        return
+
+    frame = inspect.currentframe()
+    if frame is None or frame.f_back is None:
+        raise AssertionError("Could not inspect caller frame")
+    caller = frame.f_back
+    info = inspect.getframeinfo(caller)
+    # その行のソースコードを取得（存在する場合）
+    src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
+    raise AssertionError(
+        f"""Check failed at {info.filename}:{info.lineno}\n
+    -> {src_line}
+    expectation: {expectation}
+         actual: {actual}"""
+        + (f"\n    msg: {msg}" if msg else "")
+    )
+
+
 def expect_collection(collectionobj: object, key: str, expectation: object, msg: str = "") -> None:
     """Collectionオブジェクトのキーに対応する期待値を検証する関数。keyから値を取得してexpectationと比較する。"""
     variantkey = VARIANT(pythoncom.VT_BSTR, key)
@@ -42,7 +63,11 @@ def expect_collection(collectionobj: object, key: str, expectation: object, msg:
     info = inspect.getframeinfo(caller)
     # その行のソースコードを取得（存在する場合）
     src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
-    raise AssertionError(f"Check failed at {info.filename}:{info.lineno}\n  -> {src_line}" + (f"\n  msg: {msg}" if msg else ""))
+    raise AssertionError(
+        f"Check failed: collection key {key} value {valueofkey} != expectation value {expectation}"  # type: ignore
+        + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
+        + (f"\n  msg: {msg}" if msg else "")
+    )
 
 
 def expect_collection_list(collectionobj: object, expectation: list[object], msg: str = "") -> None:
@@ -69,7 +94,7 @@ def expect_collection_list(collectionobj: object, expectation: list[object], msg
                 + f" at {info.filename}:{info.lineno}\n  -> {src_line}"
                 + (f"\n  msg: {msg}" if msg else "")
             )
-    # どこにも筆禍からなければ成功
+    # どこにも引っ掛からなければ成功
     return
 
 
