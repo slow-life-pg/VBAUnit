@@ -1,1 +1,0 @@
-python -m pip install -U autopep8 flake8 pep8-naming mypy xlwings openpyxl pythonnet
