@@ -1,17 +1,21 @@
-Test log for VBAUnit 20251015201047
+Test log for VBAUnit 20251016192937
 Subject: VBAUnit Test scenario_nps.xlsx
 Scenario: C:\Dev\VBAUnit\sample\numberplace\test\scenario_nps.xlsx
 Output: C:\Dev\VBAUnit\sample\numberplace\test\results
 Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
-Started at: 2025-10-15 20:10:47.641
+Started at: 2025-10-16 19:29:37.677
 
 
-Start at: 2025-10-15 20:10:47.645
-{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockcandidates_1_1", "at": "59", "start": "2025-10-15 20:10:47.646"}
-{"outcome": "True", "runned": "2025-10-15 20:10:52.471"}
-{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockcandidates_2_3", "at": "79", "start": "2025-10-15 20:10:52.473"}
-{"outcome": "True", "runned": "2025-10-15 20:10:57.111"}
-{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockscandidates", "at": "99", "start": "2025-10-15 20:10:57.111"}
-{"outcome": "True", "runned": "2025-10-15 20:11:01.645"}
+Start at: 2025-10-16 19:29:37.680
+{"testid": "Clear-01", "group": "Clear", "module": "clearsolution.py", "function": "test_clearsolution", "at": "5", "start": "2025-10-16 19:29:37.680"}
+{"outcome": "True", "runned": "2025-10-16 19:29:39.575"}
+{"testid": "Read-01", "group": "Read", "module": "readpuzzle.py", "function": "test_readboard", "at": "5", "start": "2025-10-16 19:29:39.576"}
+{"outcome": "True", "runned": "2025-10-16 19:29:41.382"}
+{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockcandidates_1_1", "at": "59", "start": "2025-10-16 19:29:41.383"}
+{"outcome": "True", "runned": "2025-10-16 19:29:43.135"}
+{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockcandidates_2_3", "at": "79", "start": "2025-10-16 19:29:43.135"}
+{"outcome": "True", "runned": "2025-10-16 19:29:44.930"}
+{"testid": "Derive-01", "group": "derivation", "module": "derivation.py", "function": "test_derive_blockscandidates", "at": "99", "start": "2025-10-16 19:29:44.931"}
+{"outcome": "True", "runned": "2025-10-16 19:29:46.894"}
 
-Finished at: 2025-10-15 20:11:01.645
+Finished at: 2025-10-16 19:29:46.894
