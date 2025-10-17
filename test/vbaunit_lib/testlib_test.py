@@ -73,6 +73,46 @@ def test_passingaround_collection():
         assert coll.item(2) == 4
 
 
+def test_passingaround_collection_expect():
+    from vbaunit_lib.testlib import expect_collection
+
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm") as testbook:
+        coll = testlib.getcollectionobj()
+        sl = testbook.macro("SetListValue")
+        sl(coll, 2)
+        assert coll.Count() == 2
+        expect_collection(2, coll, "1")
+        expect_collection(4, coll, "2")
+
+
+def test_passingaround_collection_expect_list():
+    from vbaunit_lib.testlib import expect_collection_list
+
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm") as testbook:
+        coll = testlib.getcollectionobj()
+        sl = testbook.macro("SetListValue")
+        sl(coll, 2)
+        assert coll.Count() == 2
+        expect_collection_list([2, 4], coll)
+
+
+def test_passingaround_collection_expect_dict():
+    from vbaunit_lib.testlib import expect_collection_dict
+
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm") as testbook:
+        coll = testlib.getcollectionobj()
+        sl = testbook.macro("SetListValue")
+        sl(coll, 2)
+        assert coll.Count() == 2
+        expect_collection_dict({"1": 2, "2": 4}, coll)
+
+
 def test_passingaround_dictionary():
     setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
     testlib = gettestlib()  # withapp=False, visible=False
@@ -84,6 +124,19 @@ def test_passingaround_dictionary():
         assert dic.Count == len(expected)
         for key in dic.Keys():
             assert dic.Item(key) == expected[key]
+
+
+def test_passingaround_dictionary_expect():
+    from vbaunit_lib.testlib import expect_dictionary
+
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/PassingObjectAround.xlsm") as testbook:
+        expected = {2: "ABC", 4: "DEF"}
+        dic = testlib.getdictionaryobj()
+        sd = testbook.macro("SetDictionaryValue")
+        sd(dic, 2)
+        expect_dictionary(expected, dic)
 
 
 def test_callmacro_byref():

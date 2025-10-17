@@ -49,7 +49,7 @@ def expect_equals(expectation: object, actual: object, msg: str = "") -> None:
     )
 
 
-def expect_collection(collectionobj: object, key: str, expectation: object, msg: str = "") -> None:
+def expect_collection(expectation: object, collectionobj: object, key: str, msg: str = "") -> None:
     """Collectionオブジェクトのキーに対応する期待値を検証する関数。keyから値を取得してexpectationと比較する。"""
     variantkey = VARIANT(pythoncom.VT_BSTR, key)
     valueofkey = collectionobj.Item(variantkey)  # type: ignore
@@ -70,7 +70,7 @@ def expect_collection(collectionobj: object, key: str, expectation: object, msg:
     )
 
 
-def expect_collection_list(collectionobj: object, expectation: list[object], msg: str = "") -> None:
+def expect_collection_list(expectation: list[object], collectionobj: object, msg: str = "") -> None:
     """Collectionオブジェクトとexpectationの全要素が順序を含めて一致することを確認する。"""
     frame = inspect.currentframe()
     if frame is None or frame.f_back is None:
@@ -98,7 +98,7 @@ def expect_collection_list(collectionobj: object, expectation: list[object], msg
     return
 
 
-def expect_collection_dict(collectionobj: object, expectation: dict[str, object], msg: str = "") -> None:
+def expect_collection_dict(expectation: dict[str, object], collectionobj: object, msg: str = "") -> None:
     """Collectionオブジェクトとexpectationのキーと値のペアが、一致することを確認する。"""
     frame = inspect.currentframe()
     if frame is None or frame.f_back is None:
@@ -126,7 +126,7 @@ def expect_collection_dict(collectionobj: object, expectation: dict[str, object]
     return
 
 
-def expect_dictionary(dictionaryobj: object, expectation: dict[object, object], msg: str = "") -> None:
+def expect_dictionary(expectation: dict[object, object], dictionaryobj: object, msg: str = "") -> None:
     """Dictionaryオブジェクトとexpectationのキーと値のペアが、一致することを確認する。"""
     frame = inspect.currentframe()
     if frame is None or frame.f_back is None:
