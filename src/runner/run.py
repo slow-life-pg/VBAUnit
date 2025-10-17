@@ -113,9 +113,9 @@ def __runtestsuite(
             except pywintypes.com_error as ce:
                 print(type(ce))
                 print(f"COM error: {ce}")
-                if comerror_retrycount < 3:
-                    comerror_retrycount += 1
-                    print(f"Retrying... ({comerror_retrycount} / 3)")
+                comerror_retrycount += 1
+                if comerror_retrycount <= 2:
+                    print(f"Retrying... ({comerror_retrycount} / 2)")
                     time.sleep(1)  # Wait for a second before retrying
                 else:
                     result = __createresult(testcase=testcase, succeeded=False)
