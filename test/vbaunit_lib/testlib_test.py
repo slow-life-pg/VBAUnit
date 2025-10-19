@@ -350,6 +350,62 @@ End Function
         assert res[0] == "Class: create backdoor"
 
 
+def test_marshalling_append():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/Marshalling.xlsm"):
+        obj = testlib.getcollectionobj()
+        res = testlib.callmacro(None, "AppendElement", obj, 1, "abc")
+        res = testlib.callmacro(None, "AppendElement", obj, 2, "def")
+        print(res[5])
+        assert res[4] == 0
+        assert obj.Count() == 2
+        ele = obj.Item(1)
+        assert ele.id == 1
+        assert ele.message == "abc"
+        ele = obj.Item(2)
+        assert ele.id == 2
+        assert ele.message == "def"
+
+
+def test_marshalling_appendlastposition():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/Marshalling.xlsm"):
+        obj = testlib.getcollectionobj()
+        res = testlib.callmacro(None, "AppendElementLastPosition", 1, "abc", obj)
+        res = testlib.callmacro(None, "AppendElementLastPosition", 2, "def", obj)
+        print(res[5])
+        assert res[4] == 0
+        assert obj.Count() == 2
+        ele = obj.Item(1)
+        assert ele.id == 1
+        assert ele.message == "abc"
+        ele = obj.Item(2)
+        assert ele.id == 2
+        assert ele.message == "def"
+
+
+def test_marshalling_appendlist():
+    setglobalbridgepath(Path("C:/Dev/VBAUnit/src/VBAUnitCOMBridge.xlsm"))
+    testlib = gettestlib()  # withapp=False, visible=False
+    with testlib.runapp("C:/Dev/VBAUnit/test/vbaunit_lib/Marshalling.xlsm"):
+        obj = testlib.getcollectionobj()
+        res = testlib.callmacro(None, "AppendElementList", obj, [1, 2, 3], ["abc", "def", "ghi"])
+        print(res[5])
+        assert res[4] == 0
+        assert obj.Count() == 3
+        ele = obj.Item(1)
+        assert ele.id == 1
+        assert ele.message == "abc"
+        ele = obj.Item(2)
+        assert ele.id == 2
+        assert ele.message == "def"
+        ele = obj.Item(3)
+        assert ele.id == 3
+        assert ele.message == "ghi"
+
+
 def test_assertion_pass():
     from vbaunit_lib.testlib import expect
 
