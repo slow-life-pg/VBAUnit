@@ -119,6 +119,10 @@ def __runtestsuite(
                     time.sleep(1)  # Wait for a second before retrying
                 else:
                     result = __createresult(testcase=testcase, succeeded=False)
+            except AssertionError as e:
+                print(f"AssertionError: {e}")
+                result = __createresult(testcase=testcase, succeeded=False)
+                break
             except Exception as e:
                 print(type(e))
                 print(f"Runtime error: {e}")

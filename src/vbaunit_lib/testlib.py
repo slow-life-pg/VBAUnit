@@ -41,7 +41,7 @@ def expect_equals(expectation: object, actual: object, msg: str = "") -> None:
     # その行のソースコードを取得（存在する場合）
     src_line = info.code_context[0].strip() if info.code_context else "<source unavailable>"
     raise AssertionError(
-        f"""Check failed at {info.filename}:{info.lineno}\n
+        f"""Check failed at {info.filename}:{info.lineno}
     -> {src_line}
     expectation: {expectation}
          actual: {actual}"""
@@ -373,9 +373,11 @@ class VBAUnitTestLib:
             if len(args) <= 16:
                 vbamacro = self.__book.macro("CallMacro")
                 vbargs = [a for a in args]
-                vbargs.append(0)  # listだけの引数だとインデックスエラーになることへの対策
+                vbargs.append(0)  # listだけの引数だとインデックスエラーになることへの対策として、末尾にダミー引数を1つ作る
                 res: list[object] = vbamacro(obj, creation, self.__internalbook.name, macro_name, vbargs)
                 # self.__comobjects.append(res) # 呼び出し結果はスコープを抜けると解放されるので登録しない
+                if res[len(res) - 2] != 0:
+                    print(f"Internal Error: ({res[len(res) - 2]}) {res[len(res) - 1]}")
                 return res
             else:
                 print(f"callmacro: too many macro arguments {len(args)}. Must be <= 16.")
