@@ -219,11 +219,60 @@ def test_derive_rowscandidates():
         expect_equals(0b0000_1111_0011, results[8])
 
 
-def test_derive_allcandidates():
+def test_derive_cellcandidates_all():
     testlib = gettestlib()
-    problem = get_problemboard_beginner()
 
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
         candidates = testlib.getcollectionobj()
-        res = testlib.callmacro(None, "DeriveCandidates", problem, candidates)
-        expect(res[3] == 0)
+        res = testlib.callmacro(None, "DeriveCellCandidates", candidates, 1, 2, 0b0001_1111_1111)
+        expect_equals("", res[6])
+        expect_equals(0, res[5])
+        expect_equals(9, candidates.Count())
+        for i in range(9):
+            testlib.registercomobject(candidates.Item(i + 1))
+            result = candidates.Item(i + 1)
+            expect_equals(1, result.Row)
+            expect_equals(2, result.Column)
+            expect_equals(i + 1, result.Fill)  # all numbers ascend
+
+
+def test_derive_cellcandidates_zero():
+    testlib = gettestlib()
+
+    with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
+        candidates = testlib.getcollectionobj()
+        res = testlib.callmacro(None, "DeriveCellCandidates", candidates, 4, 7, 0b0000_0000_0000)
+        expect_equals("", res[6])
+        expect_equals(0, res[5])
+        expect_equals(0, candidates.Count())
+
+
+def test_derive_cellcandidates_basic():
+    testlib = gettestlib()
+
+    with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
+        candidates = testlib.getcollectionobj()
+        res = testlib.callmacro(None, "DeriveCellCandidates", candidates, 2, 3, 0b0001_0011_1001)
+        expect_equals("", res[6])
+        expect_equals(0, res[5])
+        expect_equals(5, candidates.Count())
+        result = candidates.Item(1)
+        expect_equals(2, result.Row)
+        expect_equals(3, result.Column)
+        expect_equals(1, result.Fill)
+        result = candidates.Item(2)
+        expect_equals(2, result.Row)
+        expect_equals(3, result.Column)
+        expect_equals(4, result.Fill)
+        result = candidates.Item(3)
+        expect_equals(2, result.Row)
+        expect_equals(3, result.Column)
+        expect_equals(5, result.Fill)
+        result = candidates.Item(4)
+        expect_equals(2, result.Row)
+        expect_equals(3, result.Column)
+        expect_equals(6, result.Fill)
+        result = candidates.Item(5)
+        expect_equals(2, result.Row)
+        expect_equals(3, result.Column)
+        expect_equals(9, result.Fill)
