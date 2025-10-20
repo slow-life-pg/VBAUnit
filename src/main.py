@@ -43,7 +43,7 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
     3rd: -o 出力先フォルダ相対パス（任意）
     4th: -n テストスイート名（任意）
     5th: -d テストスイートの説明（任意）
-    6th: -f 実行フィルタ（任意）
+    6th: -k 実行フィルタ（任意）
     7th: -i 無視フィルタ（任意）
     8th: -s 全部か最後に失敗したものだけか（任意）
     """
@@ -51,7 +51,7 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         print("Usage:")
         print(
             "python main.py {testsuite path} [-w {working directory}][-o {output directory}][-n {test suite name}]"
-            "[-d {test suite description}][-g {group name}][-f {execution filter}][-i {ignore filter}][-s {scope}]"
+            "[-d {test suite description}][-g {group name}][-k {execution filter}][-i {ignore filter}][-s {scope}]"
         )
         print()
         print("testscenario path: absolute path for scenario file (required)")
@@ -107,7 +107,7 @@ def initenv(argv: list[str]) -> dict[str, str | Path]:
         if groups is not None:
             args["groups"] = groups
 
-        filters = __getargvalue(argstack, "-f")
+        filters = __getargvalue(argstack, "-k")
         if filters is not None:
             args["filters"] = filters
 
