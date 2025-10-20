@@ -1,13 +1,21 @@
-Test log for VBAUnit 20251019182619
+Test log for VBAUnit 20251020182031
 Subject: VBAUnit Test scenario_nps.xlsx
 Scenario: C:\Dev\VBAUnit\sample\numberplace\test\scenario_nps.xlsx
 Output: C:\Dev\VBAUnit\sample\numberplace\test\results
 Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
-Started at: 2025-10-19 18:26:19.962
+Started at: 2025-10-20 18:20:31.731
 
 
-Start at: 2025-10-19 18:26:19.969
-{"testid": "Derive-02", "group": "derivation", "module": "derivation_board.py", "function": "test_copyboard", "at": "34", "start": "2025-10-19 18:26:19.969"}
-{"outcome": "True", "runned": "2025-10-19 18:26:21.671"}
+Start at: 2025-10-20 18:20:31.733
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_leaf_phi", "at": "124", "start": "2025-10-20 18:20:31.734"}
+{"outcome": "True", "runned": "2025-10-20 18:20:33.383"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_leaf_solved", "at": "114", "start": "2025-10-20 18:20:33.384"}
+{"outcome": "True", "runned": "2025-10-20 18:20:35.018"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_fullstep", "at": "163", "start": "2025-10-20 18:20:35.018"}
+{"outcome": "True", "runned": "2025-10-20 18:20:36.628"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_onestep", "at": "138", "start": "2025-10-20 18:20:36.629"}
+{"outcome": "True", "runned": "2025-10-20 18:20:38.291"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_twostep", "at": "150", "start": "2025-10-20 18:20:38.292"}
+{"outcome": "True", "runned": "2025-10-20 18:20:39.960"}
 
-Finished at: 2025-10-19 18:26:21.672
+Finished at: 2025-10-20 18:20:39.961
