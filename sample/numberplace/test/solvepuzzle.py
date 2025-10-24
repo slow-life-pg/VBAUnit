@@ -17,28 +17,18 @@ def get_problemboard_beginner() -> list[list[int]]:
     return problem
 
 
-def get_problemboard_beginner_solved_tuple() -> tuple[
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-    tuple[int, int, int, int, int, int, int, int, int],
-]:
-    solution = (
-        (1, 2, 3, 4, 5, 6, 7, 8, 9),
-        (4, 5, 6, 7, 8, 9, 1, 2, 3),
-        (7, 8, 9, 1, 2, 3, 4, 5, 6),
-        (2, 3, 4, 5, 6, 7, 8, 9, 1),
-        (5, 6, 7, 8, 9, 1, 2, 3, 4),
-        (8, 9, 1, 2, 3, 4, 5, 6, 7),
-        (3, 4, 5, 6, 7, 8, 9, 1, 2),
-        (6, 7, 8, 9, 1, 2, 3, 4, 5),
-        (9, 1, 2, 3, 4, 5, 6, 7, 8),
-    )
+def get_problemboard_beginner_solved_tuple() -> list[list[int]]:
+    solution = [
+        [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [4, 5, 6, 7, 8, 9, 1, 2, 3],
+        [7, 8, 9, 1, 2, 3, 4, 5, 6],
+        [2, 3, 4, 5, 6, 7, 8, 9, 1],
+        [5, 6, 7, 8, 9, 1, 2, 3, 4],
+        [8, 9, 1, 2, 3, 4, 5, 6, 7],
+        [3, 4, 5, 6, 7, 8, 9, 1, 2],
+        [6, 7, 8, 9, 1, 2, 3, 4, 5],
+        [9, 1, 2, 3, 4, 5, 6, 7, 8],
+    ]
     return solution
 
 
@@ -50,6 +40,6 @@ def test_fullprocess_beginner():
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm") as book:
         book.sheets("puzzle")["A1"].value = problem
         res = testlib.callmacro(None, "SolvePuzzle")
-        expect_equals(0, res[2])
+        expect_equals(0, res[1])
         expect_equals(solution, book.sheets("solution")["A1:I9"].value)
         expect_equals("Solved!", book.sheets("solution")["K1"].value)
