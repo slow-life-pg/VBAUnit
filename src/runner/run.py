@@ -29,11 +29,8 @@ def __writestartlog(testcase: TestCase, f) -> None:
     print(json.dumps(config))
 
 
-def __writeendlog(result: TestResult, f) -> None:
-    outcome: dict[str, str] = {
-        "outcome": str(result.succeeded),
-        "runned": result.runned_at,
-    }
+def __writeendlog(result: TestResult, f, elapsed: float) -> None:
+    outcome: dict[str, str] = {"outcome": str(result.succeeded), "runned": result.runned_at, "elapsed": f"{elapsed:.3f}"}
     f.write(json.dumps(outcome) + "\n")
     print(json.dumps(outcome))
 
@@ -103,6 +100,7 @@ def __runtestsuite(
 ) -> None:
     for testcase in suite:
         __writestartlog(testcase=testcase, f=f)
+        starttime = time.time()
 
         result = None
         comerror_retrycount = 0
@@ -132,7 +130,8 @@ def __runtestsuite(
         if result is None:
             result = __createresult(testcase=testcase, succeeded=False)
 
-        __writeendlog(result=result, f=f)
+        elapsed = time.time() - starttime
+        __writeendlog(result=result, f=f, elapsed=elapsed)
         f.flush()
 
         results.append(result)
