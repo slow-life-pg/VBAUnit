@@ -111,27 +111,40 @@ def get_problemboard_expert_solved():
     return solution
 
 
+def get_problemboard_impossible() -> list[list[int]]:
+    problem = [
+        [1, 2, 0, 4, 5, 0, 7, 0, 9],
+        [4, 0, 6, 0, 8, 9, 1, 2, 0],
+        [0, 8, 9, 1, 0, 3, 0, 5, 6],
+        [2, 3, 0, 5, 6, 0, 8, 9, 1],
+        [5, 6, 7, 8, 2, 1, 0, 3, 4],
+        [8, 0, 1, 0, 3, 4, 5, 0, 7],
+        [3, 4, 0, 6, 7, 8, 0, 1, 2],
+        [6, 7, 8, 0, 1, 2, 3, 0, 5],
+        [9, 1, 2, 3, 4, 5, 6, 7, 8],
+    ]
+    return problem
+
+
 def test_search_leaf_solved():
     testlib = gettestlib()
     problem = get_problemboard_beginner_solved()
 
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
-        res = testlib.callmacro(None, "SearchSolution", problem)  # It’s already filled in, but that doesn’t matter.
-        expect_equals(0, res[2])
+        solution = testlib.getdynamicarray(0, 8, 0, 8)
+        res = testlib.callmacro(None, "SearchSolution", problem, solution)  # It’s already filled in, but that doesn’t matter.
+        expect_equals(0, res[3])
         expect_equals(-1, res[0])  # SOLVED
 
 
-def test_search_leaf_phi():
+def test_search_phi():
     testlib = gettestlib()
-    problem = get_problemboard_beginner_solved()
-
-    problem[8][8] = 0  # target
-
-    problem[8][6] = 8  # blocker
+    problem = get_problemboard_impossible()
 
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
-        res = testlib.callmacro(None, "SearchSolution", problem)
-        expect_equals(0, res[2])
+        solution = testlib.getdynamicarray(0, 8, 0, 8)
+        res = testlib.callmacro(None, "SearchSolution", problem, solution)
+        expect_equals(0, res[3])
         expect_equals(0, res[0])  # PHI
 
 
@@ -142,8 +155,9 @@ def test_search_solve_onestep():
     problem[8][8] = 0  # target
 
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
-        res = testlib.callmacro(None, "SearchSolution", problem)
-        expect_equals(0, res[2])
+        solution = testlib.getdynamicarray(0, 8, 0, 8)
+        res = testlib.callmacro(None, "SearchSolution", problem, solution)
+        expect_equals(0, res[3])
         expect_equals(-1, res[0])  # SOLVED
 
 
@@ -155,8 +169,9 @@ def test_search_solve_twostep():
     problem[8][8] = 0  # target2
 
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
-        res = testlib.callmacro(None, "SearchSolution", problem)
-        expect_equals(0, res[2])
+        solution = testlib.getdynamicarray(0, 8, 0, 8)
+        res = testlib.callmacro(None, "SearchSolution", problem, solution)
+        expect_equals(0, res[3])
         expect_equals(-1, res[0])  # SOLVED
 
 
@@ -165,18 +180,19 @@ def test_search_solve_fullstep():
     problem = get_problemboard_beginner()
 
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
-        res = testlib.callmacro(None, "SearchSolution", problem)
-        expect_equals(0, res[2])
+        solution = testlib.getdynamicarray(0, 8, 0, 8)
+        res = testlib.callmacro(None, "SearchSolution", problem, solution)
+        expect_equals(0, res[3])
         expect_equals(-1, res[0])  # SOLVED
 
 
-@ignore
-@description("There are too many branches, and the process never finishes.")
+@description("There are too many branches, but the process finishes within a practical amount of time.")
 def test_search_solve_difficult():
     testlib = gettestlib()
     problem = get_problemboard_expert()
 
     with testlib.runapp("..\\product\\NumberPlaceSolver.xlsm"):
-        res = testlib.callmacro(None, "SearchSolution", problem)
-        expect_equals(0, res[2])
+        solution = testlib.getdynamicarray(0, 8, 0, 8)
+        res = testlib.callmacro(None, "SearchSolution", problem, solution)
+        expect_equals(0, res[3])
         expect_equals(-1, res[0])  # SOLVED
