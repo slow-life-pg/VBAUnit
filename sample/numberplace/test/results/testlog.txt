@@ -1,13 +1,13 @@
-Test log for VBAUnit 20251022011304
+Test log for VBAUnit 20251024185632
 Subject: VBAUnit Test scenario_nps.xlsx
 Scenario: C:\Dev\VBAUnit\sample\numberplace\test\scenario_nps.xlsx
 Output: C:\Dev\VBAUnit\sample\numberplace\test\results
 Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
-Started at: 2025-10-22 01:13:04.928
+Started at: 2025-10-24 18:56:32.999
 
 
-Start at: 2025-10-22 01:13:04.931
-{"testid": "Search-03", "group": "search", "module": "solvepuzzle.py", "function": "test_fullprocess_beginner", "at": "45", "start": "2025-10-22 01:13:04.932"}
-{"outcome": "False", "runned": "2025-10-22 01:14:18.383", "elapsed": "73.448"}
+Start at: 2025-10-24 18:56:33.002
+{"testid": "Search-03", "group": "search", "module": "solvepuzzle.py", "function": "test_fullprocess_beginner", "at": "35", "start": "2025-10-24 18:56:33.002"}
+{"outcome": "True", "runned": "2025-10-24 18:56:34.770", "elapsed": "1.767"}
 
-Finished at: 2025-10-22 01:14:18.386
+Finished at: 2025-10-24 18:56:34.770
