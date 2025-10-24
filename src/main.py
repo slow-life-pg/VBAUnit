@@ -193,6 +193,7 @@ if __name__ == "__main__":
     # テスト実行
 
     print()
+    print(f"{testsuite.count} tests will be executed.")
     print("run test!")
 
     run_testsuite(
