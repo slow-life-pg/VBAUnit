@@ -11,8 +11,8 @@ from natsort import natsort_keygen
 from util.types import TestSuite, TestModule, TestCase, TestResult
 
 
-def __gettimestampnow() -> str:
-    return datetime.now().isoformat(sep=" ", timespec="milliseconds")
+def __gettimestampstr(dtnow: datetime) -> str:
+    return dtnow.isoformat(sep=" ", timespec="milliseconds")
 
 
 def __writestartlog(testcase: TestCase, f) -> None:
@@ -22,7 +22,7 @@ def __writestartlog(testcase: TestCase, f) -> None:
         "module": testcase.module.modulepath.name,
         "function": testcase.testfunction,
         "at": str(testcase.start_line),
-        "start": __gettimestampnow(),
+        "start": __gettimestampstr(datetime.now()),
     }
     f.write(json.dumps(config) + "\n")
     print("Running test case:")
@@ -43,7 +43,7 @@ def __createresult(testcase: TestCase, succeeded: bool) -> TestResult:
         testfunction=testcase.testfunction,
         start_line=testcase.start_line,
         succeeded=succeeded,
-        runned_at=__gettimestampnow(),
+        runned_at=__gettimestampstr(datetime.now()),
     )
     return result
 
@@ -94,19 +94,19 @@ def __runtestsuite(
     suite: TestSuite,
     results: list[TestResult],
     modulelist: list[TestModule],
-    f,
+    fout,
     modulesummary_success: dict[str, int],
     modulesummary_failure: dict[str, int],
-) -> None:
+) -> TestResult:
     for testcase in suite:
-        __writestartlog(testcase=testcase, f=f)
+        __writestartlog(testcase=testcase, f=fout)
         starttime = time.time()
 
         result = None
         comerror_retrycount = 0
         while comerror_retrycount < 3:
             try:
-                result = __runtestcase(testcase=testcase, f=f)
+                result = __runtestcase(testcase=testcase, f=fout)
                 break
             except pywintypes.com_error as ce:
                 print(type(ce))
@@ -131,8 +131,8 @@ def __runtestsuite(
             result = __createresult(testcase=testcase, succeeded=False)
 
         elapsed = time.time() - starttime
-        __writeendlog(result=result, f=f, elapsed=elapsed)
-        f.flush()
+        __writeendlog(result=result, f=fout, elapsed=elapsed)
+        fout.flush()
 
         results.append(result)
         __setmoduleresults(
@@ -178,14 +178,14 @@ def run_testsuite(suite: TestSuite, scenario: Path, bridge: Path, out: Path) -> 
     outputpath = out.joinpath(scenario.name)
     testlogpath = out.joinpath("testlog.txt")
 
-    with open(testlogpath, mode="w", encoding="utf-8") as f:
-        f.write(f"Test log for {suite.name}\n")
-        f.write(f"Subject: {suite.subject}\n")
-        f.write(f"Scenario: {scenario}\n")
-        f.write(f"Output: {out}\n")
-        f.write(f"Bridge: {bridge}\n")
-        f.write(f"Started at: {__gettimestampnow()}\n")
-        f.write("\n")
+    with open(testlogpath, mode="w", encoding="utf-8") as fout:
+        fout.write(f"Test log for {suite.name}\n")
+        fout.write(f"Subject: {suite.subject}\n")
+        fout.write(f"Scenario: {scenario}\n")
+        fout.write(f"Output: {out}\n")
+        fout.write(f"Bridge: {bridge}\n")
+        fout.write(f"Started at: {__gettimestampstr(datetime.now())}\n")
+        fout.write("\n")
     print(f"Running test suite for scenario: {suite.name}")
     print(f"{suite.subject}")
     print(f"{scenario}")
@@ -199,17 +199,28 @@ def run_testsuite(suite: TestSuite, scenario: Path, bridge: Path, out: Path) -> 
     modulelist = list[TestModule]()
     modulesummary_success: dict[str, int] = {}
     modulesummary_failure: dict[str, int] = {}
-    with open(testlogpath, mode="a", encoding="utf-8") as f:
-        f.write(f"\nStart at: {__gettimestampnow()}\n")
+    with open(testlogpath, mode="a", encoding="utf-8") as fout:
+        startat = datetime.now()
+        fout.write(f"\nStart at: {__gettimestampstr(startat)}\n")
         __runtestsuite(
             suite=suite,
             results=results,
             modulelist=modulelist,
-            f=f,
+            fout=fout,
             modulesummary_success=modulesummary_success,
             modulesummary_failure=modulesummary_failure,
         )
-        f.write(f"\nFinished at: {__gettimestampnow()}\n")
+        endat = datetime.now()
+        fout.write(f"\nFinished at: {__gettimestampstr(endat)}\n")
+
+        testcount_pass = 0
+        testcount_fail = 0
+        for result in results:
+            if result.succeeded:
+                testcount_pass += 1
+            else:
+                testcount_fail += 1
+        fout.write(f"---------- {testcount_fail} failed, {testcount_pass} passed, in {endat - startat} ----------\n")
 
     # 結果の書込
 

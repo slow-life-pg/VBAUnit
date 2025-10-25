@@ -1,23 +1,24 @@
-Test log for VBAUnit 20251025164039
+Test log for VBAUnit 20251025172041
 Subject: VBAUnit Test scenario_nps.xlsx
 Scenario: C:\Dev\VBAUnit\sample\numberplace\test\scenario_nps.xlsx
 Output: C:\Dev\VBAUnit\sample\numberplace\test\results
 Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
-Started at: 2025-10-25 16:40:39.355
+Started at: 2025-10-25 17:20:41.375
 
 
-Start at: 2025-10-25 16:40:39.363
-{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_leaf_solved", "at": "129", "start": "2025-10-25 16:40:39.363"}
-{"outcome": "True", "runned": "2025-10-25 16:40:41.671", "elapsed": "2.307"}
-{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_phi", "at": "140", "start": "2025-10-25 16:40:41.672"}
-{"outcome": "True", "runned": "2025-10-25 16:40:43.500", "elapsed": "1.828"}
-{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_difficult", "at": "189", "start": "2025-10-25 16:40:43.501"}
-{"outcome": "True", "runned": "2025-10-25 16:40:45.291", "elapsed": "1.790"}
-{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_fullstep", "at": "178", "start": "2025-10-25 16:40:45.291"}
-{"outcome": "True", "runned": "2025-10-25 16:40:47.110", "elapsed": "1.819"}
-{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_onestep", "at": "151", "start": "2025-10-25 16:40:47.111"}
-{"outcome": "True", "runned": "2025-10-25 16:40:48.795", "elapsed": "1.684"}
-{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_twostep", "at": "164", "start": "2025-10-25 16:40:48.796"}
-{"outcome": "True", "runned": "2025-10-25 16:40:50.590", "elapsed": "1.793"}
+Start at: 2025-10-25 17:20:41.381
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_leaf_solved", "at": "129", "start": "2025-10-25 17:20:41.382"}
+{"outcome": "True", "runned": "2025-10-25 17:20:43.153", "elapsed": "1.768"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_phi", "at": "140", "start": "2025-10-25 17:20:43.154"}
+{"outcome": "True", "runned": "2025-10-25 17:20:44.808", "elapsed": "1.654"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_difficult", "at": "189", "start": "2025-10-25 17:20:44.809"}
+{"outcome": "True", "runned": "2025-10-25 17:20:46.457", "elapsed": "1.647"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_fullstep", "at": "178", "start": "2025-10-25 17:20:46.457"}
+{"outcome": "True", "runned": "2025-10-25 17:20:48.107", "elapsed": "1.650"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_onestep", "at": "151", "start": "2025-10-25 17:20:48.108"}
+{"outcome": "True", "runned": "2025-10-25 17:20:49.801", "elapsed": "1.694"}
+{"testid": "Search-01", "group": "search", "module": "search.py", "function": "test_search_solve_twostep", "at": "164", "start": "2025-10-25 17:20:49.802"}
+{"outcome": "True", "runned": "2025-10-25 17:20:51.425", "elapsed": "1.623"}
 
-Finished at: 2025-10-25 16:40:50.592
+Finished at: 2025-10-25 17:20:51.426
+---------- 0 failed, 6 passed, in 0:00:10.044635
