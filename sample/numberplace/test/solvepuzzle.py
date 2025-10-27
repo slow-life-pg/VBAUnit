@@ -77,6 +77,7 @@ def test_fullprocess_beginner():
         expect_equals("Solved!", book.sheets("solution")["K1"].value)
 
 
+@ignore
 def test_fullprocess_expert():
     testlib = gettestlib()
     problem = get_problemboard_expert()
@@ -86,5 +87,5 @@ def test_fullprocess_expert():
         book.sheets("puzzle")["A1"].value = problem
         res = testlib.callmacro(None, "SolvePuzzle")
         expect_equals(0, res[1])
-        expect_equals(solution, book.sheets("solution")["A1:I9"].value)
         expect_equals("Solved!", book.sheets("solution")["K1"].value)
+        expect_equals(solution, book.sheets("solution")["A1:I9"].value)

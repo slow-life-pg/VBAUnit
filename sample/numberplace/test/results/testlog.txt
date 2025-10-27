@@ -1,16 +1,14 @@
-Test log for VBAUnit 20251025172847
+Test log for VBAUnit 20251026194035
 Subject: VBAUnit Test scenario_nps.xlsx
 Scenario: C:\Dev\VBAUnit\sample\numberplace\test\scenario_nps.xlsx
 Output: C:\Dev\VBAUnit\sample\numberplace\test\results
 Bridge: C:\Dev\VBAUnit\src\VBAUnitCOMBridge.xlsm
-Started at: 2025-10-25 17:28:48.097
+Started at: 2025-10-26 19:40:35.434
 
 
-Start at: 2025-10-25 17:28:48.100
-{"testid": "Search-03", "group": "search", "module": "solvepuzzle.py", "function": "test_fullprocess_beginner", "at": "67", "start": "2025-10-25 17:28:48.100"}
-{"outcome": "True", "runned": "2025-10-25 17:28:49.911", "elapsed": "1.806"}
-{"testid": "Search-03", "group": "search", "module": "solvepuzzle.py", "function": "test_fullprocess_expert", "at": "80", "start": "2025-10-25 17:28:49.912"}
-{"outcome": "False", "runned": "2025-10-25 17:28:51.571", "elapsed": "1.658"}
+Start at: 2025-10-26 19:40:35.436
+{"testid": "Search-03", "group": "search", "module": "solvepuzzle.py", "function": "test_fullprocess_expert", "at": "80", "start": "2025-10-26 19:40:35.436"}
+{"outcome": "False", "runned": "2025-10-27 16:40:12.694", "elapsed": "6.942"}
 
-Finished at: 2025-10-25 17:28:51.571
----------- 1 failed, 1 passed, in 0:00:03.471807 ----------
+Finished at: 2025-10-27 16:40:12.694
+---------- 1 failed, 0 passed, in 20:59:37.258423 ----------
